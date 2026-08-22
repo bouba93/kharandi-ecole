@@ -7,7 +7,6 @@ import {
   BookOpen,
   ClipboardList,
   UserCheck,
-  Award,
   Settings,
   Calendar,
   CalendarCheck,
@@ -41,7 +40,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
     { id: 'bulletin_studio', label: 'Studio Bulletins & Badges', icon: Palette },
     { id: 'teachers', label: 'Enseignants', icon: BookOpen },
     { id: 'attendance', label: 'Assiduité & Retards', icon: UserCheck, count: unexcusedCount > 0 ? unexcusedCount : undefined, countColor: 'bg-rose-50 text-gn-red border border-rose-200' },
-    { id: 'badges', label: 'Cartes scolaires', icon: Award },
     { id: 'settings', label: 'Identité de l\'école', icon: Settings },
   ];
 
@@ -50,14 +48,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
     { id: 'evaluations', label: 'Calendrier des Épreuves', icon: CalendarCheck, count: scheduledEvaluations.length },
     { id: 'attendance', label: 'Feuille de présence', icon: UserCheck },
     { id: 'classes', label: 'Mes classes', icon: GraduationCap },
-    { id: 'badges', label: 'Cartes & Mérite', icon: Award },
   ];
 
   const parentNav: NavItem[] = [
     { id: 'student_profile', label: 'Bulletin & Notes', icon: ClipboardList },
     { id: 'evaluations', label: 'Calendrier Examens', icon: Calendar },
     { id: 'absences', label: 'Assiduité & Absences', icon: UserCheck },
-    { id: 'badges', label: 'Carte scolaire', icon: Award },
   ];
 
   const currentNav = role === 'admin' ? adminNav : role === 'teacher' ? teacherNav : parentNav;
