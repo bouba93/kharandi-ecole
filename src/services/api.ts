@@ -301,3 +301,56 @@ export const badgesApi = {
       }
     ),
 };
+
+// 10. PLANIFICATION DES ÉVALUATIONS
+export const evaluationsApi = {
+  getPeriods: (schoolId?: string) => {
+    const query = schoolId ? `?school_id=${encodeURIComponent(schoolId)}` : '';
+    return fetchJson<{ success: boolean; count: number; periods: any[] }>(`/evaluations/periods${query}`);
+  },
+
+  createPeriod: (periodData: any) =>
+    fetchJson<{ success: boolean; period: any; message: string }>('/evaluations/periods', {
+      method: 'POST',
+      body: JSON.stringify(periodData),
+    }),
+
+  updatePeriod: (periodId: string, updates: any) =>
+    fetchJson<{ success: boolean; period: any; message: string }>(`/evaluations/periods/${periodId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    }),
+
+  deletePeriod: (periodId: string) =>
+    fetchJson<{ success: boolean; message: string }>(`/evaluations/periods/${periodId}`, {
+      method: 'DELETE',
+    }),
+
+  getSchedule: (params?: { class_id?: string; period_id?: string; trimester?: number; subject_id?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.class_id) query.set('class_id', params.class_id);
+    if (params?.period_id) query.set('period_id', params.period_id);
+    if (params?.trimester) query.set('trimester', String(params.trimester));
+    if (params?.subject_id) query.set('subject_id', params.subject_id);
+    const queryString = query.toString() ? `?${query.toString()}` : '';
+    return fetchJson<{ success: boolean; count: number; evaluations: any[] }>(`/evaluations/schedule${queryString}`);
+  },
+
+  createEvaluation: (evaluationData: any) =>
+    fetchJson<{ success: boolean; evaluation: any; message: string }>('/evaluations/schedule', {
+      method: 'POST',
+      body: JSON.stringify(evaluationData),
+    }),
+
+  updateEvaluation: (evalId: string, updates: any) =>
+    fetchJson<{ success: boolean; evaluation: any; message: string }>(`/evaluations/schedule/${evalId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    }),
+
+  deleteEvaluation: (evalId: string) =>
+    fetchJson<{ success: boolean; message: string }>(`/evaluations/schedule/${evalId}`, {
+      method: 'DELETE',
+    }),
+};
+

@@ -11,6 +11,10 @@ import {
   ParentAlert,
   StudentReportCard,
   SubjectAverages,
+  SchoolInfo,
+  EvaluationPeriod,
+  ScheduledEvaluation,
+  TeacherAccount,
 } from '../types';
 import {
   SCHOOL_INFO,
@@ -22,6 +26,9 @@ import {
   INITIAL_LOGBOOK,
   INITIAL_PAYMENTS,
   INITIAL_ALERTS,
+  INITIAL_EVALUATION_PERIODS,
+  INITIAL_SCHEDULED_EVALUATIONS,
+  INITIAL_TEACHER_ACCOUNTS,
 } from '../data/initialData';
 
 import {
@@ -34,14 +41,30 @@ import {
   absencesApi,
   parentApi,
   badgesApi,
+  evaluationsApi,
 } from '../services/api';
+
+export interface UserSession {
+  role: Role;
+  name: string;
+  email?: string;
+  matricule?: string;
+  schoolId: string;
+}
 
 interface SchoolContextType {
   role: Role;
   setRole: (role: Role) => void;
+  currentUser: UserSession | null;
+  setCurrentUser: (user: UserSession | null) => void;
+  login: (credentials: { identifier: string; password?: string; role: Role }) => boolean;
+  logout: () => void;
+
   selectedStudentIdForParent: string;
   setSelectedStudentIdForParent: (id: string) => void;
-  schoolInfo: typeof SCHOOL_INFO;
+  schoolInfo: SchoolInfo;
+  updateSchoolInfo: (info: Partial<SchoolInfo>) => void;
+
   classes: SchoolClass[];
   students: Student[];
   subjects: Subject[];
@@ -50,12 +73,21 @@ interface SchoolContextType {
   logbook: LogbookEntry[];
   payments: PaymentTransaction[];
   alerts: ParentAlert[];
+  evaluationPeriods: EvaluationPeriod[];
+  scheduledEvaluations: ScheduledEvaluation[];
+  teacherAccounts: TeacherAccount[];
   isBackendConnected: boolean;
   
   // Actions
   addStudent: (student: Omit<Student, 'id' | 'matricule'>) => Student;
   updateStudent: (id: string, updates: Partial<Student>) => void;
   deleteStudent: (id: string) => void;
+  generateParentPin: (studentId: string) => string;
+  
+  // Teacher Accounts (Created by Direction)
+  addTeacherAccount: (account: Omit<TeacherAccount, 'id' | 'createdAt'>) => TeacherAccount;
+  updateTeacherAccount: (id: string, updates: Partial<TeacherAccount>) => void;
+  deleteTeacherAccount: (id: string) => void;
   
   addClass: (cls: Omit<SchoolClass, 'id' | 'studentCount'>) => void;
   addGrade: (grade: Omit<Grade, 'id'>) => void;
@@ -75,6 +107,15 @@ interface SchoolContextType {
   
   sendParentAlert: (alert: Omit<ParentAlert, 'id' | 'sentAt' | 'status'>) => ParentAlert;
 
+  // Evaluation Planning
+  addEvaluationPeriod: (period: Omit<EvaluationPeriod, 'id'>) => EvaluationPeriod;
+  updateEvaluationPeriod: (id: string, updates: Partial<EvaluationPeriod>) => void;
+  deleteEvaluationPeriod: (id: string) => void;
+
+  addScheduledEvaluation: (evaluation: Omit<ScheduledEvaluation, 'id'>) => ScheduledEvaluation;
+  updateScheduledEvaluation: (id: string, updates: Partial<ScheduledEvaluation>) => void;
+  deleteScheduledEvaluation: (id: string) => void;
+
   // Helpers
   getStudentReportCard: (studentId: string, trimester?: 1 | 2 | 3) => StudentReportCard | null;
   getFinancialSummary: () => {
@@ -82,7 +123,7 @@ interface SchoolContextType {
     totalExpected: number;
     totalCollected: number;
     totalUnpaid: number;
-    kharandiRevenue: number; // 60,000 GNF * totalStudents
+    kharandiRevenue: number;
     collectionRate: number;
   };
   resetAllData: () => void;
@@ -91,45 +132,87 @@ interface SchoolContextType {
 const SchoolContext = createContext<SchoolContextType | undefined>(undefined);
 
 export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [role, setRole] = useState<Role>('admin');
+  const [role, setRole] = useState<Role>(() => {
+    const saved = localStorage.getItem('school_user_role');
+    return (saved as Role) || 'admin';
+  });
+
+  const [currentUser, setCurrentUser] = useState<UserSession | null>(() => {
+    const saved = localStorage.getItem('school_user_session');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return null;
+      }
+    }
+    return {
+      role: 'admin',
+      name: 'Direction Générale',
+      email: 'direction@ecole.gn',
+      schoolId: 'sch-gn-001',
+    };
+  });
+
   const [selectedStudentIdForParent, setSelectedStudentIdForParent] = useState<string>('std-001');
 
-  // Local storage initial state loader
+  // School Info / White-labeling
+  const [schoolInfo, setSchoolInfo] = useState<SchoolInfo>(() => {
+    const saved = localStorage.getItem('school_info_config');
+    return saved ? JSON.parse(saved) : SCHOOL_INFO;
+  });
+
+  // Local storage state loaders
   const [classes, setClasses] = useState<SchoolClass[]>(() => {
-    const saved = localStorage.getItem('kharandi_classes');
+    const saved = localStorage.getItem('school_classes');
     return saved ? JSON.parse(saved) : INITIAL_CLASSES;
   });
 
   const [students, setStudents] = useState<Student[]>(() => {
-    const saved = localStorage.getItem('kharandi_students');
+    const saved = localStorage.getItem('school_students');
     return saved ? JSON.parse(saved) : INITIAL_STUDENTS;
   });
 
   const [subjects] = useState<Subject[]>(INITIAL_SUBJECTS);
 
   const [grades, setGrades] = useState<Grade[]>(() => {
-    const saved = localStorage.getItem('kharandi_grades');
+    const saved = localStorage.getItem('school_grades');
     return saved ? JSON.parse(saved) : INITIAL_GRADES;
   });
 
   const [attendance, setAttendance] = useState<AttendanceRecord[]>(() => {
-    const saved = localStorage.getItem('kharandi_attendance');
+    const saved = localStorage.getItem('school_attendance');
     return saved ? JSON.parse(saved) : INITIAL_ATTENDANCE;
   });
 
   const [logbook, setLogbook] = useState<LogbookEntry[]>(() => {
-    const saved = localStorage.getItem('kharandi_logbook');
+    const saved = localStorage.getItem('school_logbook');
     return saved ? JSON.parse(saved) : INITIAL_LOGBOOK;
   });
 
   const [payments, setPayments] = useState<PaymentTransaction[]>(() => {
-    const saved = localStorage.getItem('kharandi_payments');
+    const saved = localStorage.getItem('school_payments');
     return saved ? JSON.parse(saved) : INITIAL_PAYMENTS;
   });
 
   const [alerts, setAlerts] = useState<ParentAlert[]>(() => {
-    const saved = localStorage.getItem('kharandi_alerts');
+    const saved = localStorage.getItem('school_alerts');
     return saved ? JSON.parse(saved) : INITIAL_ALERTS;
+  });
+
+  const [evaluationPeriods, setEvaluationPeriods] = useState<EvaluationPeriod[]>(() => {
+    const saved = localStorage.getItem('school_eval_periods');
+    return saved ? JSON.parse(saved) : INITIAL_EVALUATION_PERIODS;
+  });
+
+  const [scheduledEvaluations, setScheduledEvaluations] = useState<ScheduledEvaluation[]>(() => {
+    const saved = localStorage.getItem('school_eval_schedule');
+    return saved ? JSON.parse(saved) : INITIAL_SCHEDULED_EVALUATIONS;
+  });
+
+  const [teacherAccounts, setTeacherAccounts] = useState<TeacherAccount[]>(() => {
+    const saved = localStorage.getItem('school_teacher_accounts');
+    return saved ? JSON.parse(saved) : INITIAL_TEACHER_ACCOUNTS;
   });
 
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(true);
@@ -144,43 +227,141 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Save to LocalStorage
   useEffect(() => {
-    localStorage.setItem('kharandi_classes', JSON.stringify(classes));
+    localStorage.setItem('school_user_role', role);
+  }, [role]);
+
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('school_user_session', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('school_user_session');
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    localStorage.setItem('school_info_config', JSON.stringify(schoolInfo));
+  }, [schoolInfo]);
+
+  useEffect(() => {
+    localStorage.setItem('school_classes', JSON.stringify(classes));
   }, [classes]);
 
   useEffect(() => {
-    localStorage.setItem('kharandi_students', JSON.stringify(students));
+    localStorage.setItem('school_students', JSON.stringify(students));
   }, [students]);
 
   useEffect(() => {
-    localStorage.setItem('kharandi_grades', JSON.stringify(grades));
+    localStorage.setItem('school_grades', JSON.stringify(grades));
   }, [grades]);
 
   useEffect(() => {
-    localStorage.setItem('kharandi_attendance', JSON.stringify(attendance));
+    localStorage.setItem('school_attendance', JSON.stringify(attendance));
   }, [attendance]);
 
   useEffect(() => {
-    localStorage.setItem('kharandi_logbook', JSON.stringify(logbook));
+    localStorage.setItem('school_logbook', JSON.stringify(logbook));
   }, [logbook]);
 
   useEffect(() => {
-    localStorage.setItem('kharandi_payments', JSON.stringify(payments));
+    localStorage.setItem('school_payments', JSON.stringify(payments));
   }, [payments]);
 
   useEffect(() => {
-    localStorage.setItem('kharandi_alerts', JSON.stringify(alerts));
+    localStorage.setItem('school_alerts', JSON.stringify(alerts));
   }, [alerts]);
+
+  useEffect(() => {
+    localStorage.setItem('school_eval_periods', JSON.stringify(evaluationPeriods));
+  }, [evaluationPeriods]);
+
+  useEffect(() => {
+    localStorage.setItem('school_eval_schedule', JSON.stringify(scheduledEvaluations));
+  }, [scheduledEvaluations]);
+
+  useEffect(() => {
+    localStorage.setItem('school_teacher_accounts', JSON.stringify(teacherAccounts));
+  }, [teacherAccounts]);
+
+  // Auth Methods
+  const login = ({ identifier, password, role: targetRole }: { identifier: string; password?: string; role: Role }): boolean => {
+    setRole(targetRole);
+
+    let sessionName = 'Utilisateur';
+    let userMatricule: string | undefined = undefined;
+
+    if (targetRole === 'admin') {
+      sessionName = schoolInfo.directorName ? `Direction (${schoolInfo.directorName})` : "Direction de l'Établissement";
+    } else if (targetRole === 'teacher') {
+      const match = teacherAccounts.find(
+        (t) =>
+          t.email.toLowerCase() === identifier.trim().toLowerCase() ||
+          t.accessCode.toLowerCase() === identifier.trim().toLowerCase() ||
+          t.id === identifier.trim()
+      );
+      if (match) {
+        sessionName = match.name;
+      } else if (identifier.includes('@')) {
+        sessionName = 'Prof. Souleymane Camara';
+      } else {
+        sessionName = `Enseignant (${identifier})`;
+      }
+    } else if (targetRole === 'parent') {
+      const cleanId = identifier.trim().toLowerCase();
+      const student = students.find(
+        (s) =>
+          s.matricule.toLowerCase() === cleanId ||
+          s.id === cleanId ||
+          (s.parentPin && s.parentPin.toLowerCase() === cleanId) ||
+          s.parentPhone.replace(/\s+/g, '') === cleanId.replace(/\s+/g, '')
+      );
+      if (student) {
+        sessionName = `${student.parentName} (Parent de ${student.firstName})`;
+        userMatricule = student.matricule;
+        setSelectedStudentIdForParent(student.id);
+      } else {
+        sessionName = `Espace Parent (${identifier})`;
+        userMatricule = identifier;
+      }
+    }
+
+    const session: UserSession = {
+      role: targetRole,
+      name: sessionName,
+      email: identifier.includes('@') ? identifier : undefined,
+      matricule: userMatricule,
+      schoolId: schoolInfo.id,
+    };
+
+    setCurrentUser(session);
+    return true;
+  };
+
+  const logout = () => {
+    setCurrentUser(null);
+  };
+
+  const updateSchoolInfo = (infoUpdates: Partial<SchoolInfo>) => {
+    setSchoolInfo((prev) => {
+      const updated = { ...prev, ...infoUpdates };
+      schoolsApi.update(updated.id, updated).catch((err) =>
+        console.warn('API Sync notice (updateSchoolInfo):', err.message)
+      );
+      return updated;
+    });
+  };
 
   // Actions
   const addStudent = (studentData: Omit<Student, 'id' | 'matricule'>): Student => {
     const id = `std-${Date.now()}`;
     const seq = (students.length + 101).toString().padStart(4, '0');
     const matricule = `KH-2025-${seq}`;
+    const pin = `PAR-${Math.floor(1000 + Math.random() * 9000)}`;
     
     const newStudent: Student = {
       ...studentData,
       id,
       matricule,
+      parentPin: studentData.parentPin || pin,
       photoUrl: studentData.photoUrl || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80`,
     };
 
@@ -194,12 +375,45 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     );
 
     // Sync to Backend
-    studentsApi.create('sch-gn-001', {
+    studentsApi.create(schoolInfo.id, {
       ...newStudent,
-      schoolId: 'sch-gn-001',
+      schoolId: schoolInfo.id,
     }).catch((err) => console.warn('API Sync notice (addStudent):', err.message));
 
     return newStudent;
+  };
+
+  const generateParentPin = (studentId: string): string => {
+    const newPin = `PAR-${Math.floor(1000 + Math.random() * 9000)}`;
+    setStudents((prev) =>
+      prev.map((s) => (s.id === studentId ? { ...s, parentPin: newPin } : s))
+    );
+    return newPin;
+  };
+
+  // Teacher Accounts created by Direction
+  const addTeacherAccount = (accountData: Omit<TeacherAccount, 'id' | 'createdAt'>): TeacherAccount => {
+    const id = `tch-${Date.now()}`;
+    const accessCode = accountData.accessCode || `ENS-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newAccount: TeacherAccount = {
+      ...accountData,
+      id,
+      accessCode,
+      createdAt: new Date().toISOString().split('T')[0],
+      status: 'Actif',
+    };
+    setTeacherAccounts((prev) => [newAccount, ...prev]);
+    return newAccount;
+  };
+
+  const updateTeacherAccount = (id: string, updates: Partial<TeacherAccount>) => {
+    setTeacherAccounts((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
+    );
+  };
+
+  const deleteTeacherAccount = (id: string) => {
+    setTeacherAccounts((prev) => prev.filter((t) => t.id !== id));
   };
 
   const updateStudent = (id: string, updates: Partial<Student>) => {
@@ -241,7 +455,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // Sync to Backend
     classesApi.create({
       ...newClass,
-      schoolId: 'sch-gn-001',
+      schoolId: schoolInfo.id,
     }).catch((err) => console.warn('API Sync notice (addClass):', err.message));
   };
 
@@ -294,7 +508,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             studentName: `${student.firstName} ${student.lastName}`,
             parentPhone: student.parentPhone,
             title: r.status === 'Retard' ? 'Alerte Retard' : 'Alerte Absence',
-            message: `Kharandi École : Votre enfant ${student.firstName} ${student.lastName} a été noté(e) ${r.status.toLowerCase()} le ${r.date}.`,
+            message: `Avis École : Votre enfant ${student.firstName} ${student.lastName} a été noté(e) ${r.status.toLowerCase()} le ${r.date}.`,
             type: 'absence',
             channel: 'SMS',
           });
@@ -340,7 +554,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       trimesterLabel: paymentData.trimesterLabel,
       date: dateStr,
       status: 'Payé',
-      issuedBy: paymentData.paymentMethod === 'Espèces' ? 'M. Sylla (Caisse)' : 'Paiement En Ligne Kharandi',
+      issuedBy: paymentData.paymentMethod === 'Espèces' ? 'M. Sylla (Caisse)' : 'Paiement En Ligne',
     };
 
     setPayments((prev) => [newPayment, ...prev]);
@@ -356,7 +570,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       studentName: `${student.firstName} ${student.lastName}`,
       parentPhone: student.parentPhone,
       title: 'Paiement Confirmé',
-      message: `Kharandi École : Reçu de versement de ${paymentData.amount.toLocaleString()} GNF pour ${student.firstName} (${paymentData.paymentMethod} Ref: ${paymentData.transactionRef}). Reçu ${receiptNum}.`,
+      message: `Avis École : Reçu de versement de ${paymentData.amount.toLocaleString()} GNF pour ${student.firstName} (${paymentData.paymentMethod} Ref: ${paymentData.transactionRef}). Reçu ${receiptNum}.`,
       type: 'payment_reminder',
       channel: 'SMS',
     });
@@ -375,6 +589,64 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     setAlerts((prev) => [newAlert, ...prev]);
     return newAlert;
+  };
+
+  // Evaluation Planning Methods
+  const addEvaluationPeriod = (periodData: Omit<EvaluationPeriod, 'id'>): EvaluationPeriod => {
+    const newPeriod: EvaluationPeriod = {
+      ...periodData,
+      id: `per-${Date.now()}`,
+    };
+    setEvaluationPeriods((prev) => [...prev, newPeriod]);
+    evaluationsApi.createPeriod({ ...newPeriod, schoolId: schoolInfo.id }).catch((err) =>
+      console.warn('API Sync notice (addEvaluationPeriod):', err.message)
+    );
+    return newPeriod;
+  };
+
+  const updateEvaluationPeriod = (id: string, updates: Partial<EvaluationPeriod>) => {
+    setEvaluationPeriods((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
+    );
+    evaluationsApi.updatePeriod(id, updates).catch((err) =>
+      console.warn('API Sync notice (updateEvaluationPeriod):', err.message)
+    );
+  };
+
+  const deleteEvaluationPeriod = (id: string) => {
+    setEvaluationPeriods((prev) => prev.filter((p) => p.id !== id));
+    setScheduledEvaluations((prev) => prev.filter((e) => e.periodId !== id));
+    evaluationsApi.deletePeriod(id).catch((err) =>
+      console.warn('API Sync notice (deleteEvaluationPeriod):', err.message)
+    );
+  };
+
+  const addScheduledEvaluation = (evalData: Omit<ScheduledEvaluation, 'id'>): ScheduledEvaluation => {
+    const newEval: ScheduledEvaluation = {
+      ...evalData,
+      id: `eval-${Date.now()}`,
+    };
+    setScheduledEvaluations((prev) => [...prev, newEval]);
+    evaluationsApi.createEvaluation({ ...newEval, schoolId: schoolInfo.id }).catch((err) =>
+      console.warn('API Sync notice (addScheduledEvaluation):', err.message)
+    );
+    return newEval;
+  };
+
+  const updateScheduledEvaluation = (id: string, updates: Partial<ScheduledEvaluation>) => {
+    setScheduledEvaluations((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, ...updates } : e))
+    );
+    evaluationsApi.updateEvaluation(id, updates).catch((err) =>
+      console.warn('API Sync notice (updateScheduledEvaluation):', err.message)
+    );
+  };
+
+  const deleteScheduledEvaluation = (id: string) => {
+    setScheduledEvaluations((prev) => prev.filter((e) => e.id !== id));
+    evaluationsApi.deleteEvaluation(id).catch((err) =>
+      console.warn('API Sync notice (deleteScheduledEvaluation):', err.message)
+    );
   };
 
   // Helper for Report Card
@@ -423,10 +695,8 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     // Calculate class rank
     const classStudents = students.filter((s) => s.classId === student.classId);
-    // Sort all class students by average (using dummy logic or real grades)
     const classAverages = classStudents.map((s) => {
       if (s.id === studentId) return { id: s.id, avg: overallAverage };
-      // approximate average for other classmates
       const sGrades = grades.filter((g) => g.studentId === s.id && g.trimester === trimester);
       const avg = sGrades.length > 0 ? sGrades.reduce((a, b) => a + b.score, 0) / sGrades.length : 13.5;
       return { id: s.id, avg };
@@ -448,7 +718,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return {
       student,
       trimester,
-      schoolYear: SCHOOL_INFO.schoolYear,
+      schoolYear: schoolInfo.schoolYear,
       subjectAverages,
       overallAverage,
       classRank,
@@ -480,14 +750,19 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const resetAllData = () => {
-    localStorage.removeItem('kharandi_classes');
-    localStorage.removeItem('kharandi_students');
-    localStorage.removeItem('kharandi_grades');
-    localStorage.removeItem('kharandi_attendance');
-    localStorage.removeItem('kharandi_logbook');
-    localStorage.removeItem('kharandi_payments');
-    localStorage.removeItem('kharandi_alerts');
+    localStorage.removeItem('school_info_config');
+    localStorage.removeItem('school_classes');
+    localStorage.removeItem('school_students');
+    localStorage.removeItem('school_grades');
+    localStorage.removeItem('school_attendance');
+    localStorage.removeItem('school_logbook');
+    localStorage.removeItem('school_payments');
+    localStorage.removeItem('school_alerts');
+    localStorage.removeItem('school_eval_periods');
+    localStorage.removeItem('school_eval_schedule');
+    localStorage.removeItem('school_user_session');
 
+    setSchoolInfo(SCHOOL_INFO);
     setClasses(INITIAL_CLASSES);
     setStudents(INITIAL_STUDENTS);
     setGrades(INITIAL_GRADES);
@@ -495,6 +770,8 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setLogbook(INITIAL_LOGBOOK);
     setPayments(INITIAL_PAYMENTS);
     setAlerts(INITIAL_ALERTS);
+    setEvaluationPeriods(INITIAL_EVALUATION_PERIODS);
+    setScheduledEvaluations(INITIAL_SCHEDULED_EVALUATIONS);
   };
 
   return (
@@ -502,9 +779,14 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       value={{
         role,
         setRole,
+        currentUser,
+        setCurrentUser,
+        login,
+        logout,
         selectedStudentIdForParent,
         setSelectedStudentIdForParent,
-        schoolInfo: SCHOOL_INFO,
+        schoolInfo,
+        updateSchoolInfo,
         classes,
         students,
         subjects,
@@ -513,10 +795,17 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         logbook,
         payments,
         alerts,
+        evaluationPeriods,
+        scheduledEvaluations,
+        teacherAccounts,
         isBackendConnected,
         addStudent,
         updateStudent,
         deleteStudent,
+        generateParentPin,
+        addTeacherAccount,
+        updateTeacherAccount,
+        deleteTeacherAccount,
         addClass,
         addGrade,
         addBulkGrades,
@@ -524,6 +813,12 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         addLogbookEntry,
         processPayment,
         sendParentAlert,
+        addEvaluationPeriod,
+        updateEvaluationPeriod,
+        deleteEvaluationPeriod,
+        addScheduledEvaluation,
+        updateScheduledEvaluation,
+        deleteScheduledEvaluation,
         getStudentReportCard,
         getFinancialSummary,
         resetAllData,
@@ -541,3 +836,4 @@ export const useSchool = () => {
   }
   return ctx;
 };
+

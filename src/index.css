@@ -1,10 +1,85 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-cyan: #0284c7;
-  --color-brand-gold: #f59e0b;
-  --color-brand-emerald: #10b981;
-  --color-brand-navy: #0f172a;
+  --font-sans: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'Roboto Mono', monospace;
+
+  /* Couleurs Officielles de la République de Guinée */
+  --color-gn-red: #ce1126;
+  --color-gn-red-dark: #990000;
+  --color-gn-yellow: #fcd116;
+  --color-gn-yellow-dark: #d4a000;
+  --color-gn-green: #009460;
+  --color-gn-green-dark: #006837;
+
+  /* Thème Moderne : Bleu Ciel & Orange */
+  --color-sky-brand: #0ea5e9;
+  --color-sky-brand-dark: #0284c7;
+  --color-sky-brand-light: #e0f2fe;
+  --color-orange-brand: #f97316;
+  --color-orange-brand-dark: #ea580c;
+  --color-orange-brand-light: #ffedd5;
+}
+
+body {
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: #f0f9ff;
+  color: #0f172a;
+}
+
+/* Geometric Lines & Animated Grid Patterns */
+.bg-geometric-grid {
+  background-color: #f0f9ff;
+  background-image: 
+    linear-gradient(30deg, rgba(14, 165, 233, 0.08) 12%, transparent 12.5%, transparent 87%, rgba(14, 165, 233, 0.08) 87.5%, rgba(14, 165, 233, 0.08)),
+    linear-gradient(150deg, rgba(14, 165, 233, 0.08) 12%, transparent 12.5%, transparent 87%, rgba(14, 165, 233, 0.08) 87.5%, rgba(14, 165, 233, 0.08)),
+    linear-gradient(30deg, rgba(249, 115, 22, 0.07) 37%, transparent 37.5%, transparent 62.5%, rgba(249, 115, 22, 0.07) 63%),
+    linear-gradient(150deg, rgba(249, 115, 22, 0.07) 37%, transparent 37.5%, transparent 62.5%, rgba(249, 115, 22, 0.07) 63%),
+    linear-gradient(60deg, rgba(14, 165, 233, 0.07) 25%, transparent 25.5%, transparent 75%, rgba(14, 165, 233, 0.07) 75.5%, rgba(14, 165, 233, 0.07)),
+    linear-gradient(120deg, rgba(14, 165, 233, 0.07) 25%, transparent 25.5%, transparent 75%, rgba(14, 165, 233, 0.07) 75.5%, rgba(14, 165, 233, 0.07));
+  background-size: 100px 180px;
+  background-position: 0 0, 0 0, 50px 90px, 50px 90px, 0 0, 0 0;
+  animation: moveGeometric 15s ease-in-out infinite alternate;
+}
+
+@keyframes moveGeometric {
+  0% {
+    background-position: 0 0, 0 0, 50px 90px, 50px 90px, 0 0, 0 0;
+  }
+  50% {
+    background-position: 100px 180px, -50px 90px, 150px 270px, 50px 130px, 100px 90px, -50px 180px;
+  }
+  100% {
+    background-position: 200px 360px, -100px 180px, 250px 450px, 100px 260px, 200px 180px, -100px 360px;
+  }
+}
+
+.bg-geometric-dots {
+  background-image: radial-gradient(rgba(14, 165, 233, 0.15) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Modern Gradient Backgrounds */
+.bg-sky-gradient {
+  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 50%, #38bdf8 100%);
+}
+
+.bg-orange-gradient {
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 50%, #fb923c 100%);
+}
+
+.bg-sunset-sky {
+  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 60%, #f97316 100%);
+}
+
+/* Guinean Tricolor Bar Utility */
+.guinea-tricolor-bar {
+  height: 4px;
+  background: linear-gradient(90deg, #ce1126 0%, #ce1126 33.33%, #fcd116 33.33%, #fcd116 66.66%, #009460 66.66%, #009460 100%);
+}
+
+.guinea-tricolor-border {
+  border-image: linear-gradient(90deg, #ce1126 0%, #ce1126 33.33%, #fcd116 33.33%, #fcd116 66.66%, #009460 66.66%, #009460 100%) 1;
 }
 
 ::-webkit-scrollbar {
@@ -21,3 +96,22 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+
+@media print {
+  body {
+    background: white !important;
+  }
+  header, aside, .no-print {
+    display: none !important;
+  }
+  #printable-bulletin, #printable-badge {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+}
+

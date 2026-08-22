@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSchool } from '../../context/SchoolContext';
 import { Grade } from '../../types';
-import { ClipboardList, CheckCircle2, Save, Calculator, Wand2 } from 'lucide-react';
+import { Save, CheckCircle2 } from 'lucide-react';
 
 export const GradeEntry: React.FC = () => {
   const { classes, students, addBulkGrades } = useSchool();
@@ -39,21 +39,9 @@ export const GradeEntry: React.FC = () => {
     setIsSaved(false);
   };
 
-  const generateAutoAppreciations = () => {
-    const newComments: Record<string, string> = {};
-    classStudents.forEach((std) => {
-      const scoreNum = parseFloat(scores[std.id] || '12');
-      if (scoreNum >= 16) {
-        newComments[std.id] = 'Compétences parfaitement acquises. Élève très brillant.';
-      } else if (scoreNum >= 14) {
-        newComments[std.id] = 'Bon travail. Poursuivez vos efforts avec régularité.';
-      } else if (scoreNum >= 10) {
-        newComments[std.id] = 'Ensemble passable. Renforcer la rigueur dans les exercices.';
-      } else {
-        newComments[std.id] = 'Résultats en deçà des attentes. Révision approfondie nécessaire.';
-      }
-    });
-    setComments(newComments);
+  const handleCommentChange = (stdId: string, val: string) => {
+    setComments((prev) => ({ ...prev, [stdId]: val }));
+    setIsSaved(false);
   };
 
   const handleSaveGrades = () => {
@@ -67,7 +55,7 @@ export const GradeEntry: React.FC = () => {
       maxScore: 20,
       date: new Date().toISOString().split('T')[0],
       coefficient: 4,
-      comment: comments[std.id] || 'Évaluation consignée',
+      comment: comments[std.id] || 'Évaluation enregistrée',
     }));
 
     addBulkGrades(gradeList);
@@ -75,51 +63,53 @@ export const GradeEntry: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-2xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200">
         <div>
-          <span className="text-xs font-bold text-sky-600 uppercase tracking-wider block">GRILLES D'ÉVALUATION</span>
-          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-            Saisie des Notes par Classe
-          </h2>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-slate-900">Saisie des notes</h1>
+            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-600">
+              Trimestre {trimester}
+            </span>
+          </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Saisie directe des devoirs & compositions avec calcul instantané de la moyenne de classe et appréciations automatiques.
+            Saisie directe des devoirs et compositions avec calcul automatique de la moyenne.
           </p>
         </div>
 
         <button
-          onClick={generateAutoAppreciations}
-          className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-2xs transition-all inline-flex items-center space-x-2"
+          onClick={handleSaveGrades}
+          className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors self-start sm:self-auto"
         >
-          <Wand2 className="w-4 h-4 text-amber-400" />
-          <span>Générer Appréciations</span>
+          {isSaved ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+          <span>{isSaved ? 'Notes enregistrées' : 'Enregistrer les notes'}</span>
         </button>
       </div>
 
       {/* Control Filters */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+      <div className="bg-white p-4 rounded-xl border border-slate-200 grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
         <div>
-          <label className="block font-semibold text-slate-700 mb-1">Classe</label>
+          <label className="block text-slate-500 font-medium mb-1">Classe</label>
           <select
             value={selectedClassId}
             onChange={(e) => setSelectedClassId(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
+            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-emerald-500 font-semibold"
           >
             {classes.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name}
+                {c.name} ({c.studentCount} élèves)
               </option>
             ))}
           </select>
         </div>
 
         <div>
-          <label className="block font-semibold text-slate-700 mb-1">Trimestre</label>
+          <label className="block text-slate-500 font-medium mb-1">Trimestre</label>
           <select
             value={trimester}
-            onChange={(e) => setTrimester(Number(e.target.value) as any)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
+            onChange={(e) => setTrimester(Number(e.target.value) as 1 | 2 | 3)}
+            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-emerald-500 font-medium"
           >
             <option value={1}>1er Trimestre</option>
             <option value={2}>2ème Trimestre</option>
@@ -128,84 +118,104 @@ export const GradeEntry: React.FC = () => {
         </div>
 
         <div>
-          <label className="block font-semibold text-slate-700 mb-1">Type d'Évaluation</label>
+          <label className="block text-slate-500 font-medium mb-1">Matière</label>
           <select
-            value={evaluationType}
-            onChange={(e) => setEvaluationType(e.target.value as any)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
+            value={selectedSubjectId}
+            onChange={(e) => setSelectedSubjectId(e.target.value)}
+            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-emerald-500 font-medium"
           >
-            <option value="Interrogation">Interrogation Écrite</option>
-            <option value="Devoir 1">Devoir Surveillé N°1</option>
-            <option value="Devoir 2">Devoir Surveillé N°2</option>
-            <option value="Composition">Composition Trimestrielle</option>
+            <option value="sub-math-sm">Mathématiques (Coeff. 4)</option>
+            <option value="sub-phys-sm">Physique - Chimie (Coeff. 3)</option>
+            <option value="sub-fra-sm">Français (Coeff. 3)</option>
+            <option value="sub-ang-sm">Anglais (Coeff. 2)</option>
           </select>
         </div>
 
-        <div className="flex items-end">
-          <button
-            onClick={handleSaveGrades}
-            className="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow-2xs inline-flex items-center justify-center space-x-2 transition-colors"
+        <div>
+          <label className="block text-slate-500 font-medium mb-1">Type d'évaluation</label>
+          <select
+            value={evaluationType}
+            onChange={(e) => setEvaluationType(e.target.value as any)}
+            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-emerald-500 font-medium"
           >
-            <Save className="w-4 h-4" />
-            <span>{isSaved ? 'Notes Enregistrées !' : 'Enregistrer les Notes'}</span>
-          </button>
+            <option value="Devoir 1">Devoir sur table 1</option>
+            <option value="Devoir 2">Devoir sur table 2</option>
+            <option value="Interrogation">Interrogation écrite</option>
+            <option value="Composition">Composition Trimestrielle</option>
+          </select>
         </div>
       </div>
 
-      {/* Class Statistics Cards */}
-      <div className="grid grid-cols-3 gap-4 text-center">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
-          <span className="text-[10px] text-slate-400 font-bold uppercase block">Moyenne de Classe</span>
-          <span className="text-xl font-extrabold font-mono text-sky-600">{average} /20</span>
+      {/* Summary KPI Bar */}
+      <div className="grid grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-white p-4 rounded-xl border border-slate-200">
+          <span className="text-xs text-slate-500 font-medium block">Moyenne du groupe</span>
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="text-2xl font-bold text-slate-900">{average}</span>
+            <span className="text-xs text-slate-400">/20</span>
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
-          <span className="text-[10px] text-slate-400 font-bold uppercase block">Note Maximale</span>
-          <span className="text-xl font-extrabold font-mono text-emerald-600">{maxScore} /20</span>
+
+        <div className="bg-white p-4 rounded-xl border border-slate-200">
+          <span className="text-xs text-slate-500 font-medium block">Note maximale</span>
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="text-2xl font-bold text-emerald-600">{maxScore}</span>
+            <span className="text-xs text-slate-400">/20</span>
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
-          <span className="text-[10px] text-slate-400 font-bold uppercase block">Note Minimale</span>
-          <span className="text-xl font-extrabold font-mono text-rose-600">{minScore} /20</span>
+
+        <div className="bg-white p-4 rounded-xl border border-slate-200">
+          <span className="text-xs text-slate-500 font-medium block">Note minimale</span>
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="text-2xl font-bold text-rose-600">{minScore}</span>
+            <span className="text-xs text-slate-400">/20</span>
+          </div>
         </div>
       </div>
 
-      {/* Student Spreadsheet Grid */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+      {/* Grade Entry Table */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
-            <thead className="bg-slate-100/80 text-slate-700 font-bold border-b border-slate-200">
+            <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
               <tr>
-                <th className="py-3.5 px-4">Élève</th>
-                <th className="py-3.5 px-4">Matricule</th>
-                <th className="py-3.5 px-4 w-32">Note (/20)</th>
-                <th className="py-3.5 px-4">Appréciation Pédagogique</th>
+                <th className="py-3 px-4">Élève</th>
+                <th className="py-3 px-4">Matricule</th>
+                <th className="py-3 px-4 w-36">Note (/ 20)</th>
+                <th className="py-3 px-4">Appréciation</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-800">
               {classStudents.map((std) => (
-                <tr key={std.id} className="hover:bg-slate-50/80 transition-colors">
-                  <td className="py-3 px-4 font-extrabold text-slate-900">{std.firstName} {std.lastName}</td>
-                  <td className="py-3 px-4 font-mono font-bold text-sky-600">{std.matricule}</td>
+                <tr key={std.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="py-3 px-4 font-semibold text-slate-900">
+                    {std.firstName} {std.lastName}
+                  </td>
+
+                  <td className="py-3 px-4 font-mono text-slate-500 text-[11px]">
+                    {std.matricule}
+                  </td>
+
                   <td className="py-3 px-4">
                     <input
                       type="number"
-                      step={0.5}
                       min={0}
                       max={20}
+                      step={0.5}
                       value={scores[std.id] || ''}
                       onChange={(e) => handleScoreChange(std.id, e.target.value)}
-                      placeholder="12.0"
-                      className="w-24 text-center font-mono font-bold text-slate-900 bg-slate-50 border border-slate-300 rounded-xl py-1.5 focus:outline-none focus:border-sky-500"
+                      placeholder="0.0"
+                      className="w-24 p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 font-bold focus:outline-none focus:border-emerald-500 text-center font-mono"
                     />
                   </td>
+
                   <td className="py-3 px-4">
                     <input
                       type="text"
                       value={comments[std.id] || ''}
-                      onChange={(e) =>
-                        setComments((prev) => ({ ...prev, [std.id]: e.target.value }))
-                      }
-                      placeholder="Remarque pédagogique..."
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-1.5 px-3 text-slate-800 text-xs focus:outline-none focus:border-sky-500"
+                      onChange={(e) => handleCommentChange(std.id, e.target.value)}
+                      placeholder="Observation..."
+                      className="w-full p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-emerald-500"
                     />
                   </td>
                 </tr>

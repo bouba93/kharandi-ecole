@@ -9,10 +9,9 @@ import {
   UserCheck,
   Award,
   Settings,
-  Building2,
-  FileCheck,
-  Smartphone,
-  ShieldCheck,
+  Calendar,
+  CalendarCheck,
+  Palette,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -20,95 +19,105 @@ interface SidebarProps {
   setActiveTab: (tab: string) => void;
 }
 
+interface NavItem {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  count?: number;
+  countColor?: string;
+}
+
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
-  const { role } = useSchool();
+  const { role, students, classes, attendance, scheduledEvaluations, schoolInfo } = useSchool();
 
-  const adminNav = [
+  const unexcusedCount = attendance.filter((a) => a.status === 'Absent Non Justifié').length;
+
+  const adminNav: NavItem[] = [
     { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
-    { id: 'students', label: 'Inscriptions & Élèves', icon: Users },
-    { id: 'classes', label: 'Classes & Matières', icon: GraduationCap },
-    { id: 'teachers', label: 'Corps Enseignant', icon: BookOpen },
-    { id: 'grades', label: 'Notes & Évaluations', icon: ClipboardList },
-    { id: 'attendance', label: 'Assiduité & Absences', icon: UserCheck },
-    { id: 'badges', label: 'Badges & Cartes', icon: Award },
-    { id: 'settings', label: 'Paramètres École', icon: Settings },
+    { id: 'students', label: 'Élèves & Inscriptions', icon: Users, count: students.length },
+    { id: 'classes', label: 'Classes & Niveaux', icon: GraduationCap, count: classes.length },
+    { id: 'evaluations', label: 'Planification Examens', icon: CalendarCheck, count: scheduledEvaluations.length },
+    { id: 'grades', label: 'Notes & Bulletins', icon: ClipboardList },
+    { id: 'bulletin_studio', label: 'Studio Bulletins & Badges', icon: Palette },
+    { id: 'teachers', label: 'Enseignants', icon: BookOpen },
+    { id: 'attendance', label: 'Assiduité & Retards', icon: UserCheck, count: unexcusedCount > 0 ? unexcusedCount : undefined, countColor: 'bg-rose-50 text-gn-red border border-rose-200' },
+    { id: 'badges', label: 'Cartes scolaires', icon: Award },
+    { id: 'settings', label: 'Identité de l\'école', icon: Settings },
   ];
 
-  const teacherNav = [
-    { id: 'grades', label: 'Saisie des évaluations', icon: ClipboardList },
-    { id: 'attendance', label: 'Prise d\'appel & Absences', icon: UserCheck },
-    { id: 'classes', label: 'Mes Classes assignées', icon: GraduationCap },
-    { id: 'badges', label: 'Badges & Mérite', icon: Award },
+  const teacherNav: NavItem[] = [
+    { id: 'grades', label: 'Saisie des notes', icon: ClipboardList },
+    { id: 'evaluations', label: 'Calendrier des Épreuves', icon: CalendarCheck, count: scheduledEvaluations.length },
+    { id: 'attendance', label: 'Feuille de présence', icon: UserCheck },
+    { id: 'classes', label: 'Mes classes', icon: GraduationCap },
+    { id: 'badges', label: 'Cartes & Mérite', icon: Award },
   ];
 
-  const parentNav = [
+  const parentNav: NavItem[] = [
     { id: 'student_profile', label: 'Bulletin & Notes', icon: ClipboardList },
-    { id: 'absences', label: 'Suivi des Absences', icon: UserCheck },
-    { id: 'badges', label: 'Cartes & Badges élève', icon: Award },
+    { id: 'evaluations', label: 'Calendrier Examens', icon: Calendar },
+    { id: 'absences', label: 'Assiduité & Absences', icon: UserCheck },
+    { id: 'badges', label: 'Carte scolaire', icon: Award },
   ];
 
   const currentNav = role === 'admin' ? adminNav : role === 'teacher' ? teacherNav : parentNav;
 
   return (
-    <aside className="w-full lg:w-64 bg-white border-r border-slate-200/90 flex-shrink-0 flex flex-col justify-between p-4 sm:p-5">
-      <div className="space-y-6">
-        {/* Active Space Indicator */}
-        <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold">
-              <Building2 className="w-3.5 h-3.5 text-sky-400" />
-            </div>
-            <div>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">ESPACE ACTIF</p>
-              <p className="text-xs font-bold text-slate-900">
-                {role === 'admin' ? 'Direction Établissement' : role === 'teacher' ? 'Corps Enseignant' : 'Portail Parent'}
-              </p>
-            </div>
-          </div>
-          <span className="w-2 h-2 rounded-full bg-emerald-500" />
-        </div>
-
-        {/* Navigation Group */}
-        <div>
-          <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-3 mb-2">
-            NAVIGATION PRINCIPALE
+    <aside id="main-sidebar" className="w-full lg:w-64 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col justify-between p-4 shadow-2xs">
+      <div className="space-y-4">
+        {/* Guinean Tricolor small accent on sidebar */}
+        <div className="flex items-center justify-between px-2">
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            Menu principal
           </p>
-
-          <nav className="space-y-0.5">
-            {currentNav.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all relative ${
-                    isActive
-                      ? 'bg-slate-900 text-white shadow-xs font-bold'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-sky-400' : 'text-slate-400'}`} />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
+          <div className="flex gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-gn-red inline-block"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-gn-yellow inline-block"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-gn-green inline-block"></span>
+          </div>
         </div>
+
+        <nav className="space-y-1">
+          {currentNav.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+
+            return (
+              <button
+                id={`nav-item-${item.id}`}
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs transition-all ${
+                  isActive
+                    ? 'bg-gradient-to-r from-sky-500 to-sky-600 text-white font-bold shadow-sm shadow-sky-500/20'
+                    : 'text-slate-600 hover:bg-sky-50 hover:text-slate-900 font-medium'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-orange-200' : 'text-sky-500'}`} />
+                  <span>{item.label}</span>
+                </div>
+                {item.count !== undefined && (
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    isActive ? 'bg-sky-600 text-orange-200' : (item.countColor || 'bg-sky-50 text-sky-700 border border-sky-200')
+                  }`}>
+                    {item.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
       </div>
 
-      {/* Footer System Status */}
-      <div className="pt-4 border-t border-slate-100">
-        <div className="bg-slate-50 border border-slate-200/70 rounded-xl p-3 text-[11px] text-slate-600 space-y-1">
-          <div className="flex items-center justify-between font-medium">
-            <span className="text-slate-500">Kharandi Système</span>
-            <span className="text-emerald-600 font-bold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              MEPU-A En ligne
-            </span>
+      {/* School Year Info at footer of sidebar */}
+      <div className="pt-4 border-t border-slate-200">
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="font-semibold text-slate-700">Année scolaire</span>
+            <span className="text-gn-green font-bold text-[11px] font-mono">{schoolInfo.schoolYear || '2025-2026'}</span>
           </div>
-          <p className="text-[10px] text-slate-400">Synchronisation des registres scolaires active.</p>
+          <p className="text-[11px] text-slate-500 font-medium">Trimestre {schoolInfo.currentTrimester || 1} en cours</p>
         </div>
       </div>
     </aside>

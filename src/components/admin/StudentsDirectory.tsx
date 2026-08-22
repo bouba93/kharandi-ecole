@@ -1,26 +1,26 @@
 import React, { useState } from 'react';
 import { useSchool } from '../../context/SchoolContext';
-import { Student, LevelCategory } from '../../types';
+import { Student, BloodGroup } from '../../types';
 import { BadgeModal } from '../common/BadgeModal';
 import {
   Users,
   Search,
   Plus,
-  ShieldCheck,
-  CreditCard,
   QrCode,
+  FileText,
+  X,
+  Trash2,
   Phone,
   Mail,
   MapPin,
   Calendar,
-  X,
-  FileText,
-  CheckCircle2,
-  AlertTriangle,
+  HeartPulse,
+  UserCheck,
+  ShieldAlert,
 } from 'lucide-react';
 
 export const StudentsDirectory: React.FC = () => {
-  const { students, classes, addStudent, updateStudent, deleteStudent } = useSchool();
+  const { students, classes, addStudent, deleteStudent, schoolInfo } = useSchool();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClassId, setSelectedClassId] = useState<string>('Tous');
@@ -32,18 +32,32 @@ export const StudentsDirectory: React.FC = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [gender, setGender] = useState<'M' | 'F'>('M');
-  const [birthDate, setBirthDate] = useState('2008-05-10');
+  const [birthDate, setBirthDate] = useState('2009-04-12');
   const [birthPlace, setBirthPlace] = useState('Conakry');
   const [classId, setClassId] = useState(classes[0]?.id || '');
+  
+  // Médical & Contact
+  const [bloodType, setBloodType] = useState<BloodGroup>('O+');
+  const [medicalNotes, setMedicalNotes] = useState('R.A.S');
+  const [emergencyContact, setEmergencyContact] = useState('+224 620 00 00 00');
+  
+  // Tuteurs & Parents
   const [parentName, setParentName] = useState('');
-  const [parentPhone, setParentPhone] = useState('+224 ');
+  const [parentPhone, setParentPhone] = useState('+224 622 ');
   const [parentEmail, setParentEmail] = useState('');
   const [address, setAddress] = useState('Ratoma, Conakry');
-  const [tuitionTotal, setTuitionTotal] = useState(1800000); // 1.8M GNF default
+  
+  const [fatherName, setFatherName] = useState('');
+  const [fatherPhone, setFatherPhone] = useState('+224 620 ');
+  const [fatherJob, setFatherJob] = useState('');
+  const [motherName, setMotherName] = useState('');
+  const [motherPhone, setMotherPhone] = useState('+224 628 ');
+  const [motherJob, setMotherJob] = useState('');
+  const [tutorRelationship, setTutorRelationship] = useState('Père');
 
   const filteredStudents = students.filter((s) => {
     const matchesSearch =
-      `${s.firstName} ${s.lastName} ${s.matricule} ${s.parentPhone}`
+      `${s.firstName} ${s.lastName} ${s.matricule} ${s.parentPhone} ${s.bloodType || ''}`
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
     const matchesClass = selectedClassId === 'Tous' || s.classId === selectedClassId;
@@ -65,12 +79,22 @@ export const StudentsDirectory: React.FC = () => {
       classId: targetClass.id,
       className: targetClass.name,
       level: targetClass.level,
-      parentName: parentName || 'Tuteur Légal',
-      parentPhone: parentPhone || '+224 620 00 00 00',
-      parentEmail: parentEmail || 'parent@kharandi.gn',
+      bloodType,
+      medicalNotes,
+      emergencyContact: emergencyContact || parentPhone,
+      parentName: parentName || fatherName || motherName || 'Tuteur Légal',
+      parentPhone: parentPhone || fatherPhone || '+224 620 00 00 00',
+      parentEmail: parentEmail || '',
       address,
+      fatherName,
+      fatherPhone,
+      fatherJob,
+      motherName,
+      motherPhone,
+      motherJob,
+      tutorRelationship,
       enrollmentDate: new Date().toISOString().split('T')[0],
-      tuitionTotal: Number(tuitionTotal),
+      tuitionTotal: targetClass.level === 'Lycée' ? 2200000 : targetClass.level === 'Collège' ? 1800000 : 1400000,
       tuitionPaid: 0,
       status: 'En retard',
     });
@@ -78,54 +102,66 @@ export const StudentsDirectory: React.FC = () => {
     setShowAddModal(false);
     setFirstName('');
     setLastName('');
+    setParentName('');
+    setFatherName('');
+    setMotherName('');
+    setMedicalNotes('R.A.S');
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-        <div>
-          <span className="text-xs font-bold text-sky-600 uppercase tracking-wider block">
-            DOSSIERS SCOLAIRES & MATRICULES
-          </span>
-          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-            Répertoire Général des Élèves & Badges
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Gestion des inscriptions, suivi des dossiers, contacts tuteurs et génération de badges d'identité scolaires.
-          </p>
+    <div className="space-y-6">
+      {/* Top Header with Guinean national banner accent */}
+      <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs relative overflow-hidden">
+        <div className="h-1.5 w-full absolute top-0 left-0 flex">
+          <div className="w-1/3 bg-gn-red"></div>
+          <div className="w-1/3 bg-gn-yellow"></div>
+          <div className="w-1/3 bg-gn-green"></div>
         </div>
 
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all inline-flex items-center space-x-2 self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Inscrire un Nouvel Élève</span>
-        </button>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-slate-900">Registre National des Élèves</h1>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                {filteredStudents.length} {filteredStudents.length === 1 ? 'élève inscrit' : 'élèves inscrits'}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              {schoolInfo.name} • Registre officiel des effectifs, santé, contacts des parents et cartes scolaires.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="px-4 py-2.5 bg-gn-green hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition-colors inline-flex items-center gap-2 shadow-xs"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Inscrire un élève</span>
+          </button>
+        </div>
       </div>
 
-      {/* Filter Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+      {/* Filter & Search Bar */}
+      <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
         {/* Search */}
-        <div className="relative w-full md:w-80">
+        <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Rechercher par nom, matricule, téléphone..."
-            className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-9 pr-3 text-slate-800 focus:outline-none focus:border-[#18bfd6]"
+            placeholder="Rechercher par nom, matricule, groupe sanguin, téléphone..."
+            className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg py-2 pl-9 pr-3 text-slate-800 focus:outline-none focus:border-gn-green font-medium"
           />
         </div>
 
         {/* Class Filter Dropdown */}
-        <div className="flex items-center space-x-2 w-full md:w-auto">
-          <span className="text-xs text-slate-500 font-semibold whitespace-nowrap">Classe :</span>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Filtrer par classe :</span>
           <select
             value={selectedClassId}
             onChange={(e) => setSelectedClassId(e.target.value)}
-            className="text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 focus:outline-none focus:border-[#18bfd6] w-full md:w-auto font-semibold"
+            className="text-xs bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-slate-800 focus:outline-none focus:border-gn-green font-semibold"
           >
             <option value="Tous">Toutes les classes ({students.length})</option>
             {classes.map((c) => (
@@ -138,25 +174,25 @@ export const StudentsDirectory: React.FC = () => {
       </div>
 
       {/* Students Table */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
-            <thead className="bg-slate-100/70 text-slate-600 font-bold border-b border-slate-100">
+            <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
               <tr>
-                <th className="py-3.5 px-4">Élève</th>
-                <th className="py-3.5 px-4">Matricule</th>
-                <th className="py-3.5 px-4">Classe & Niveau</th>
-                <th className="py-3.5 px-4">Parent / Contact</th>
-                <th className="py-3.5 px-4 text-right">Scolarité (GNF)</th>
-                <th className="py-3.5 px-4 text-center">Statut</th>
-                <th className="py-3.5 px-4 text-right">Actions</th>
+                <th className="py-3 px-4">Élève</th>
+                <th className="py-3 px-4">Matricule</th>
+                <th className="py-3 px-4">Classe</th>
+                <th className="py-3 px-4">Groupe Sanguin</th>
+                <th className="py-3 px-4">Parent / Contact</th>
+                <th className="py-3 px-4">Statut</th>
+                <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-800">
               {filteredStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-8 text-slate-400">
-                    Aucun élève ne correspond à votre recherche.
+                  <td colSpan={7} className="text-center py-10 text-slate-400">
+                    Aucun élève trouvé pour cette recherche.
                   </td>
                 </tr>
               ) : (
@@ -164,53 +200,55 @@ export const StudentsDirectory: React.FC = () => {
                   <tr key={std.id} className="hover:bg-slate-50/80 transition-colors">
                     {/* Name & Photo */}
                     <td className="py-3 px-4">
-                      <div className="flex items-center space-x-3">
-                        <img
-                          src={std.photoUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80'}
-                          alt={std.firstName}
-                          className="w-9 h-9 rounded-xl object-cover border border-slate-200"
-                        />
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden border border-slate-200">
+                          {std.photoUrl ? (
+                            <img src={std.photoUrl} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            `${std.firstName.slice(0, 1)}${std.lastName.slice(0, 1)}`
+                          )}
+                        </div>
                         <div>
-                          <span className="font-extrabold text-slate-900 text-sm block">
+                          <span className="font-bold text-slate-900 block">
                             {std.firstName} {std.lastName}
                           </span>
-                          <span className="text-[10px] text-slate-400">Né(e) le {std.birthDate}</span>
+                          <span className="text-[11px] text-slate-500">
+                            {std.gender === 'F' ? 'Fille' : 'Garçon'} • Né(e) le {std.birthDate} ({std.birthPlace})
+                          </span>
                         </div>
                       </div>
                     </td>
 
                     {/* Matricule */}
-                    <td className="py-3 px-4 font-mono font-bold text-[#18bfd6]">{std.matricule}</td>
+                    <td className="py-3 px-4 font-mono font-bold text-slate-800">{std.matricule}</td>
 
                     {/* Class */}
                     <td className="py-3 px-4">
-                      <span className="font-semibold text-slate-800 block">{std.className}</span>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">{std.level}</span>
+                      <span className="font-semibold text-slate-800">{std.className}</span>
+                      <span className="text-[10px] text-slate-500 block">{std.level}</span>
+                    </td>
+
+                    {/* Blood Group */}
+                    <td className="py-3 px-4">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded font-bold text-xs bg-rose-50 text-gn-red border border-rose-200">
+                        <HeartPulse className="w-3 h-3 text-gn-red" />
+                        {std.bloodType || 'N/R'}
+                      </span>
                     </td>
 
                     {/* Parent Contact */}
                     <td className="py-3 px-4">
-                      <span className="font-medium text-slate-800 block">{std.parentName}</span>
-                      <span className="text-[10px] font-mono text-[#fcb303] font-bold">{std.parentPhone}</span>
+                      <span className="font-semibold text-slate-900 block">{std.parentName}</span>
+                      <span className="font-mono text-[11px] text-slate-600 block">{std.parentPhone}</span>
                     </td>
 
-                    {/* Tuition Progress */}
-                    <td className="py-3 px-4 text-right font-mono">
-                      <span className="font-bold text-slate-900 block">
-                        {std.tuitionPaid.toLocaleString()} GNF
-                      </span>
-                      <span className="text-[10px] text-slate-400">
-                        sur {std.tuitionTotal.toLocaleString()} GNF
-                      </span>
-                    </td>
-
-                    {/* Status Badge */}
-                    <td className="py-3 px-4 text-center">
+                    {/* Status */}
+                    <td className="py-3 px-4">
                       <span
-                        className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold ${
+                        className={`inline-flex px-2 py-0.5 rounded text-[11px] font-bold ${
                           std.status === 'En règle'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-rose-100 text-rose-800'
+                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                            : 'bg-amber-50 text-amber-800 border border-amber-200'
                         }`}
                       >
                         {std.status}
@@ -218,21 +256,34 @@ export const StudentsDirectory: React.FC = () => {
                     </td>
 
                     {/* Actions */}
-                    <td className="py-3 px-4 text-right space-x-1">
+                    <td className="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
                       <button
                         onClick={() => setSelectedStudentForBadge(std)}
-                        className="p-1.5 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-[#18bfd6] transition-colors"
-                        title="Générer Badge Scolaire avec QR Code"
+                        className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-gn-green transition-colors border border-emerald-200 inline-flex items-center gap-1 font-semibold"
+                        title="Carte d'identité scolaire officielle (Charte GN)"
                       >
-                        <QrCode className="w-4 h-4" />
+                        <QrCode className="w-3.5 h-3.5" />
+                        <span className="hidden xl:inline text-[11px]">Carte</span>
                       </button>
 
                       <button
                         onClick={() => setSelectedStudentDetail(std)}
                         className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
-                        title="Fiche Élève Détaillée"
+                        title="Fiche individuelle complète"
                       >
                         <FileText className="w-4 h-4" />
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`Confirmer la suppression de l'élève ${std.firstName} ${std.lastName} (${std.matricule}) ?`)) {
+                            deleteStudent(std.id);
+                          }
+                        }}
+                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-gn-red transition-colors"
+                        title="Supprimer"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
                   </tr>
@@ -245,136 +296,287 @@ export const StudentsDirectory: React.FC = () => {
 
       {/* Add Student Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-100 max-w-lg w-full p-6 animate-in fade-in zoom-in duration-200 my-8">
-            <h3 className="font-extrabold text-slate-900 text-base mb-4">Inscrire un Nouvel Élève</h3>
-
-            <form onSubmit={handleRegisterStudent} className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Prénom</label>
-                  <input
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="Ex : Kadiatou"
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#18bfd6]"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Nom de Famille</label>
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Ex : Diallo"
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#18bfd6]"
-                    required
-                  />
-                </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-2xl w-full p-6 my-8 max-h-[90vh] overflow-y-auto">
+            {/* National header banner */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
+              <div>
+                <h3 className="font-bold text-slate-900 text-base">Formulaire d'Inscription Scolaire</h3>
+                <p className="text-xs text-slate-500">Enregistrement Élève</p>
               </div>
+              <button onClick={() => setShowAddModal(false)} className="p-1 text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-              <div className="grid grid-cols-3 gap-3">
+            <form onSubmit={handleRegisterStudent} className="space-y-4 text-xs">
+              {/* Section: Identité de l'élève */}
+              <div className="bg-slate-50 p-3.5 rounded-lg border border-slate-200 space-y-3">
+                <span className="font-bold text-slate-800 text-xs block">1. Identité de l'Élève</span>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-medium text-slate-700 mb-1">Prénom(s) *</label>
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="Ex: Kadiatou"
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-gn-green font-medium"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-medium text-slate-700 mb-1">Nom de famille *</label>
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Ex: Barry"
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-gn-green font-medium"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block font-medium text-slate-700 mb-1">Genre *</label>
+                    <select
+                      value={gender}
+                      onChange={(e) => setGender(e.target.value as 'M' | 'F')}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-gn-green font-medium"
+                    >
+                      <option value="M">Masculin (Garçon)</option>
+                      <option value="F">Féminin (Fille)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-medium text-slate-700 mb-1">Date de naissance *</label>
+                    <input
+                      type="date"
+                      value={birthDate}
+                      onChange={(e) => setBirthDate(e.target.value)}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-gn-green font-medium"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-medium text-slate-700 mb-1">Lieu de naissance *</label>
+                    <input
+                      type="text"
+                      value={birthPlace}
+                      onChange={(e) => setBirthPlace(e.target.value)}
+                      placeholder="Ex: Mamou, Conakry..."
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-gn-green font-medium"
+                      required
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Genre</label>
+                  <label className="block font-medium text-slate-700 mb-1">Classe d'affectation *</label>
                   <select
-                    value={gender}
-                    onChange={(e) => setGender(e.target.value as 'M' | 'F')}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#18bfd6]"
+                    value={classId}
+                    onChange={(e) => setClassId(e.target.value)}
+                    className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-gn-green font-bold"
                   >
-                    <option value="M">Masculin (M)</option>
-                    <option value="F">Féminin (F)</option>
+                    {classes.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} — Niveau {c.level} (Titulaire : {c.mainTeacherName})
+                      </option>
+                    ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Date Naissance</label>
-                  <input
-                    type="date"
-                    value={birthDate}
-                    onChange={(e) => setBirthDate(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#18bfd6]"
-                  />
+              </div>
+
+              {/* Section: Santé & Médical */}
+              <div className="bg-slate-50 p-3.5 rounded-lg border border-slate-200 space-y-3">
+                <div className="flex items-center gap-1.5">
+                  <HeartPulse className="w-4 h-4 text-gn-red" />
+                  <span className="font-bold text-slate-800 text-xs">2. Fiche Médicale & Urgence</span>
                 </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-medium text-slate-700 mb-1">Groupe Sanguin *</label>
+                    <select
+                      value={bloodType}
+                      onChange={(e) => setBloodType(e.target.value as BloodGroup)}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-gn-red font-bold focus:outline-none focus:border-gn-green"
+                    >
+                      <option value="O+">O+ (Le plus fréquent)</option>
+                      <option value="O-">O- (Donneur universel)</option>
+                      <option value="A+">A+</option>
+                      <option value="A-">A-</option>
+                      <option value="B+">B+</option>
+                      <option value="B-">B-</option>
+                      <option value="AB+">AB+ (Receveur universel)</option>
+                      <option value="AB-">AB-</option>
+                      <option value="Inconnu">Non renseigné / En attente d'analyse</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-medium text-slate-700 mb-1">Contact d'Urgence Médicale</label>
+                    <input
+                      type="text"
+                      value={emergencyContact}
+                      onChange={(e) => setEmergencyContact(e.target.value)}
+                      placeholder="+224 622 ..."
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-gn-green font-mono"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Lieu Naissance</label>
+                  <label className="block font-medium text-slate-700 mb-1">Observations médicales / Allergies</label>
                   <input
                     type="text"
-                    value={birthPlace}
-                    onChange={(e) => setBirthPlace(e.target.value)}
-                    placeholder="Ex : Conakry"
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#18bfd6]"
+                    value={medicalNotes}
+                    onChange={(e) => setMedicalNotes(e.target.value)}
+                    placeholder="Ex: Asthme, port de lunettes, allergie pénicilline ou R.A.S"
+                    className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-gn-green"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Classe d'Affectation</label>
-                <select
-                  value={classId}
-                  onChange={(e) => setClassId(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#18bfd6]"
-                >
-                  {classes.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({c.level})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* Section: Parents et Tuteurs */}
+              <div className="bg-slate-50 p-3.5 rounded-lg border border-slate-200 space-y-3">
+                <span className="font-bold text-slate-800 text-xs block">3. Parents & Coordonnées</span>
 
-              <div className="border-t border-slate-100 pt-3 mt-3">
-                <span className="text-[10px] font-bold text-[#fcb303] uppercase block mb-2">
-                  INFORMATIONS PARENT / TUTEUR
-                </span>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Nom du Parent</label>
+                    <label className="block font-medium text-slate-700 mb-1">Nom du Père</label>
+                    <input
+                      type="text"
+                      value={fatherName}
+                      onChange={(e) => setFatherName(e.target.value)}
+                      placeholder="Ex: Ousmane Barry"
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-gn-green"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-medium text-slate-700 mb-1">Téléphone Père</label>
+                    <input
+                      type="text"
+                      value={fatherPhone}
+                      onChange={(e) => setFatherPhone(e.target.value)}
+                      placeholder="+224 622 ..."
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-gn-green font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-medium text-slate-700 mb-1">Profession Père</label>
+                    <input
+                      type="text"
+                      value={fatherJob}
+                      onChange={(e) => setFatherJob(e.target.value)}
+                      placeholder="Ex: Commerçant, Ingénieur"
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-gn-green"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block font-medium text-slate-700 mb-1">Nom de la Mère</label>
+                    <input
+                      type="text"
+                      value={motherName}
+                      onChange={(e) => setMotherName(e.target.value)}
+                      placeholder="Ex: Hadja Rabiatou Diallo"
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-gn-green"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-medium text-slate-700 mb-1">Téléphone Mère</label>
+                    <input
+                      type="text"
+                      value={motherPhone}
+                      onChange={(e) => setMotherPhone(e.target.value)}
+                      placeholder="+224 628 ..."
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-gn-green font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-medium text-slate-700 mb-1">Profession Mère</label>
+                    <input
+                      type="text"
+                      value={motherJob}
+                      onChange={(e) => setMotherJob(e.target.value)}
+                      placeholder="Ex: Enseignante, Médecin"
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-gn-green"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-slate-200">
+                  <div>
+                    <label className="block font-medium text-slate-700 mb-1">Tuteur Principal *</label>
                     <input
                       type="text"
                       value={parentName}
                       onChange={(e) => setParentName(e.target.value)}
-                      placeholder="Ex : M. Ousmane Barry"
-                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#18bfd6]"
+                      placeholder="Ex: Ousmane Barry"
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-gn-green font-semibold"
+                      required
                     />
                   </div>
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Tél. SMS / Mobile Money</label>
+                    <label className="block font-medium text-slate-700 mb-1">Téléphone Alertes SMS *</label>
                     <input
                       type="text"
                       value={parentPhone}
                       onChange={(e) => setParentPhone(e.target.value)}
-                      placeholder="+224 622 00 11 22"
-                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#18bfd6] font-mono"
+                      placeholder="+224 622 34 56 78"
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-gn-green font-mono font-semibold"
+                      required
                     />
                   </div>
+                  <div>
+                    <label className="block font-medium text-slate-700 mb-1">Lien de parenté</label>
+                    <select
+                      value={tutorRelationship}
+                      onChange={(e) => setTutorRelationship(e.target.value)}
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-gn-green"
+                    >
+                      <option value="Père">Père</option>
+                      <option value="Mère">Mère</option>
+                      <option value="Oncle">Oncle</option>
+                      <option value="Tante">Tante</option>
+                      <option value="Frère/Sœur">Frère / Sœur</option>
+                      <option value="Tuteur Légal">Tuteur Légal</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">Adresse de résidence (Commune / Quartier) *</label>
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Ex: Quartier Kipé, Commune de Ratoma, Conakry"
+                    className="w-full p-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-gn-green"
+                    required
+                  />
                 </div>
               </div>
 
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Total Frais Annuel (GNF)</label>
-                <input
-                  type="number"
-                  value={tuitionTotal}
-                  onChange={(e) => setTuitionTotal(Number(e.target.value))}
-                  step={100000}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#18bfd6] font-mono font-bold"
-                />
-              </div>
-
-              <div className="pt-2 flex items-center justify-end space-x-2">
+              {/* Action buttons */}
+              <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium"
+                  className="px-4 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg font-medium"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#18bfd6] hover:bg-[#15aabf] text-white font-bold rounded-xl shadow-sm"
+                  className="px-5 py-2.5 bg-gn-green hover:bg-emerald-800 text-white font-bold rounded-lg shadow-xs"
                 >
-                  Valider l'Inscription
+                  Valider et Enregistrer l'Élève
                 </button>
               </div>
             </form>
@@ -382,51 +584,89 @@ export const StudentsDirectory: React.FC = () => {
         </div>
       )}
 
-      {/* Student Detail Drawer */}
+      {/* Student Detail Modal */}
       {selectedStudentDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-100 max-w-lg w-full p-6 animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
-              <h3 className="font-extrabold text-slate-900 text-base">Fiche Scolaire Élève</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-lg w-full p-6 my-8">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-gn-red"></div>
+                <div className="w-3 h-3 rounded-full bg-gn-yellow"></div>
+                <div className="w-3 h-3 rounded-full bg-gn-green"></div>
+                <h3 className="font-bold text-slate-900 text-sm ml-1">Dossier Individuel de l'Élève</h3>
+              </div>
               <button onClick={() => setSelectedStudentDetail(null)} className="p-1 text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-4 text-xs">
-              <div className="flex items-center space-x-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <img
-                  src={selectedStudentDetail.photoUrl}
-                  alt={selectedStudentDetail.firstName}
-                  className="w-16 h-16 rounded-2xl object-cover border-2 border-[#18bfd6]"
-                />
+              {/* Header profile card */}
+              <div className="flex items-center gap-3.5 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div className="w-14 h-14 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-base overflow-hidden border border-slate-300 shrink-0">
+                  {selectedStudentDetail.photoUrl ? (
+                    <img src={selectedStudentDetail.photoUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    `${selectedStudentDetail.firstName.slice(0, 1)}${selectedStudentDetail.lastName.slice(0, 1)}`
+                  )}
+                </div>
                 <div>
-                  <h4 className="text-base font-extrabold text-slate-900">
+                  <h4 className="font-bold text-slate-900 text-base">
                     {selectedStudentDetail.firstName} {selectedStudentDetail.lastName}
                   </h4>
-                  <p className="font-mono font-bold text-[#18bfd6]">{selectedStudentDetail.matricule}</p>
-                  <p className="text-slate-500">{selectedStudentDetail.className} ({selectedStudentDetail.level})</p>
+                  <p className="font-mono text-gn-green font-bold">{selectedStudentDetail.matricule}</p>
+                  <p className="text-slate-600 font-medium">
+                    {selectedStudentDetail.className} • {selectedStudentDetail.level}
+                  </p>
                 </div>
               </div>
 
-              <div className="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <div className="flex justify-between"><span className="text-slate-500">Parent/Tuteur :</span><span className="font-semibold">{selectedStudentDetail.parentName}</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">Téléphone Parent :</span><span className="font-mono text-[#fcb303] font-bold">{selectedStudentDetail.parentPhone}</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">Adresse :</span><span>{selectedStudentDetail.address}</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">Versement Effectué :</span><span className="font-bold text-emerald-600 font-mono">{selectedStudentDetail.tuitionPaid.toLocaleString()} GNF</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">Reste à Payer :</span><span className="font-bold text-rose-600 font-mono">{(selectedStudentDetail.tuitionTotal - selectedStudentDetail.tuitionPaid).toLocaleString()} GNF</span></div>
+              {/* Medical summary */}
+              <div className="bg-rose-50/70 p-3 rounded-xl border border-rose-200 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-gn-red flex items-center gap-1.5">
+                    <HeartPulse className="w-4 h-4" /> Données Médicales
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-white text-gn-red font-bold text-xs border border-rose-200">
+                    Groupe : {selectedStudentDetail.bloodType || 'Non renseigné'}
+                  </span>
+                </div>
+                <p className="text-slate-700">
+                  <span className="font-semibold text-slate-800">Observations : </span>
+                  {selectedStudentDetail.medicalNotes || 'R.A.S'}
+                </p>
+                <p className="text-slate-700">
+                  <span className="font-semibold text-slate-800">Contact d'urgence : </span>
+                  <span className="font-mono">{selectedStudentDetail.emergencyContact || selectedStudentDetail.parentPhone}</span>
+                </p>
               </div>
 
-              <div className="flex justify-end space-x-2 pt-2">
+              {/* Family details */}
+              <div className="space-y-2 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                <span className="font-bold text-slate-800 block border-b border-slate-200 pb-1">Famille & Tuteurs</span>
+                <div className="flex justify-between"><span className="text-slate-500">Tuteur responsable :</span><span className="font-bold text-slate-900">{selectedStudentDetail.parentName} ({selectedStudentDetail.tutorRelationship || 'Tuteur'})</span></div>
+                <div className="flex justify-between"><span className="text-slate-500">Téléphone SMS :</span><span className="font-mono font-bold text-slate-900">{selectedStudentDetail.parentPhone}</span></div>
+                {selectedStudentDetail.fatherName && (
+                  <div className="flex justify-between"><span className="text-slate-500">Père :</span><span className="font-medium text-slate-800">{selectedStudentDetail.fatherName} {selectedStudentDetail.fatherJob ? `(${selectedStudentDetail.fatherJob})` : ''}</span></div>
+                )}
+                {selectedStudentDetail.motherName && (
+                  <div className="flex justify-between"><span className="text-slate-500">Mère :</span><span className="font-medium text-slate-800">{selectedStudentDetail.motherName} {selectedStudentDetail.motherJob ? `(${selectedStudentDetail.motherJob})` : ''}</span></div>
+                )}
+                <div className="flex justify-between"><span className="text-slate-500">Adresse :</span><span className="text-slate-800">{selectedStudentDetail.address}</span></div>
+                <div className="flex justify-between"><span className="text-slate-500">Date d'inscription :</span><span className="text-slate-800">{selectedStudentDetail.enrollmentDate}</span></div>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-end gap-2.5 pt-2">
                 <button
                   onClick={() => {
                     setSelectedStudentForBadge(selectedStudentDetail);
                     setSelectedStudentDetail(null);
                   }}
-                  className="px-4 py-2 bg-[#18bfd6] text-white font-bold rounded-xl shadow-sm inline-flex items-center space-x-1.5"
+                  className="px-4 py-2.5 bg-gn-green hover:bg-emerald-800 text-white font-bold rounded-lg inline-flex items-center gap-2 shadow-xs"
                 >
                   <QrCode className="w-4 h-4" />
-                  <span>Imprimer Badge</span>
+                  <span>Imprimer la Carte Scolaire (Charte GN)</span>
                 </button>
               </div>
             </div>
@@ -441,3 +681,4 @@ export const StudentsDirectory: React.FC = () => {
     </div>
   );
 };
+

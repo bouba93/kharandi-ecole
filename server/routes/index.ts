@@ -8,6 +8,7 @@ import gradesRoutes from './grades.routes';
 import absencesRoutes from './absences.routes';
 import parentRoutes from './parent.routes';
 import badgesRoutes from './badges.routes';
+import evaluationsRoutes from './evaluations.routes';
 import { store } from '../data/store';
 
 const mainRouter = Router();
@@ -16,7 +17,7 @@ const mainRouter = Router();
 mainRouter.get('/health', (_req: Request, res: Response): void => {
   res.status(200).json({
     status: 'online',
-    system: 'KHARANDI ÉCOLE BACKEND API v1',
+    system: 'SYSTÈME SCOLAIRE GUINÉE API v1',
     timestamp: new Date().toISOString(),
     endpoints: {
       auth: ['POST /activate/', 'POST /login/', 'POST /teacher/login/'],
@@ -25,6 +26,7 @@ mainRouter.get('/health', (_req: Request, res: Response): void => {
       classes: ['GET /classes/', 'POST /classes/'],
       teachers: ['GET /teachers/', 'POST /teachers/', 'GET /teachers/:id/', 'POST /teachers/:id/', 'DELETE /teachers/:id/', 'DELETE /teachers/'],
       grades: ['GET /grades/', 'POST /grades/'],
+      evaluations: ['GET /evaluations/periods', 'POST /evaluations/periods', 'GET /evaluations/schedule', 'POST /evaluations/schedule'],
       absences: ['GET /absences/', 'POST /absences/'],
       parent: ['GET /parent/:matricule/', 'GET /parents/students/:id/badges/', 'GET /parents/students/:id/badges/:badge_id/pdf/'],
       badges: ['POST /schools/badges/issue/', 'GET /schools/badges/history/:school_id/', 'DELETE /schools/badges/:badge_id/'],
@@ -80,10 +82,13 @@ mainRouter.use('/teachers', teachersRoutes);
 // 7. Grades (/grades)
 mainRouter.use('/grades', gradesRoutes);
 
-// 8. Absences (/absences)
+// 8. Evaluations Planning (/evaluations)
+mainRouter.use('/evaluations', evaluationsRoutes);
+
+// 9. Absences (/absences)
 mainRouter.use('/absences', absencesRoutes);
 
-// 9. Parent portal (/parent/:matricule, /parents/students/...)
+// 10. Parent portal (/parent/:matricule, /parents/students/...)
 mainRouter.use('/parent', parentRoutes);
 mainRouter.use('/parents', parentRoutes);
 

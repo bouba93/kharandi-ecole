@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSchool } from '../../context/SchoolContext';
-import { UserCheck, Send, CheckCircle2, XCircle, Clock, AlertTriangle } from 'lucide-react';
+import { UserCheck, CheckCircle2 } from 'lucide-react';
 
 export const AttendanceRollCall: React.FC = () => {
   const { classes, students, recordAttendance } = useSchool();
@@ -41,16 +41,18 @@ export const AttendanceRollCall: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200">
         <div>
-          <span className="text-xs font-bold text-[#18bfd6] uppercase tracking-wider block">DISCIPLINE & ASSIDUITÉ</span>
-          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-            Prise d'Appel Quotidien & Alertes Parentales
-          </h2>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-slate-900">Feuille de présence</h1>
+            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-600">
+              Appel du jour
+            </span>
+          </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Pointage instantané des présences avec envoi automatique de SMS aux parents en cas d'absence.
+            Pointage en direct des élèves avec notification SMS automatique en cas d'absence.
           </p>
         </div>
 
@@ -58,91 +60,102 @@ export const AttendanceRollCall: React.FC = () => {
         <select
           value={selectedClassId}
           onChange={(e) => setSelectedClassId(e.target.value)}
-          className="text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:border-[#18bfd6]"
+          className="text-xs font-semibold bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-slate-900 focus:outline-none focus:border-emerald-500"
         >
           {classes.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name} ({c.studentCount} Élèves)
+              {c.name} ({c.studentCount} élèves)
             </option>
           ))}
         </select>
       </div>
 
       {/* Control Actions Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-        <label className="flex items-center space-x-2 text-slate-800 font-bold cursor-pointer">
+      <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <label className="flex items-center gap-2 text-slate-700 font-medium cursor-pointer">
           <input
             type="checkbox"
             checked={notifyParents}
             onChange={(e) => setNotifyParents(e.target.checked)}
-            className="w-4 h-4 rounded text-[#18bfd6] focus:ring-[#18bfd6]"
+            className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
           />
-          <span>Envoyer automatiquement une alerte SMS au parent si l'élève est absent / en retard</span>
+          <span>Notifier le tuteur par SMS en cas d'absence ou de retard</span>
         </label>
 
         <button
           onClick={handleSaveAttendance}
-          className="px-5 py-2.5 bg-[#18bfd6] hover:bg-[#15aabf] text-white font-bold rounded-xl shadow-sm transition-all inline-flex items-center space-x-2 whitespace-nowrap"
+          className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors inline-flex items-center gap-1.5 whitespace-nowrap"
         >
-          <Send className="w-4 h-4" />
-          <span>{isSaved ? 'Appel Enregistré & Alertes Envoyées !' : 'Valider & Alerter les Parents'}</span>
+          {isSaved ? <CheckCircle2 className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+          <span>{isSaved ? 'Appel validé' : 'Valider la feuille de présence'}</span>
         </button>
       </div>
 
-      {/* Roll Call Grid */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      {/* Roll Call Table */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
-            <thead className="bg-slate-100/80 text-slate-700 font-bold border-b border-slate-100">
+            <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
               <tr>
-                <th className="py-3.5 px-4">Élève</th>
-                <th className="py-3.5 px-4">Matricule</th>
-                <th className="py-3.5 px-4">Contact Tuteur</th>
-                <th className="py-3.5 px-4 text-center">Statut d'Appel</th>
+                <th className="py-3 px-4">Élève</th>
+                <th className="py-3 px-4">Matricule</th>
+                <th className="py-3 px-4">Tuteur</th>
+                <th className="py-3 px-4 text-center">Statut d'assiduité</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-800">
               {classStudents.map((std) => {
-                const current = currentStatuses[std.id] || 'Présent';
+                const currentStatus = currentStatuses[std.id] || 'Présent';
 
                 return (
-                  <tr key={std.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-4 font-extrabold text-slate-900">{std.firstName} {std.lastName}</td>
-                    <td className="py-3 px-4 font-mono font-bold text-[#18bfd6]">{std.matricule}</td>
-                    <td className="py-3 px-4 font-mono text-[#fcb303] font-bold">{std.parentPhone}</td>
-                    <td className="py-3 px-4 text-center">
-                      <div className="inline-flex bg-slate-100 p-1 rounded-xl space-x-1">
+                  <tr key={std.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="py-3 px-4 font-semibold text-slate-900">
+                      {std.firstName} {std.lastName}
+                    </td>
+
+                    <td className="py-3 px-4 font-mono text-slate-500 text-[11px]">
+                      {std.matricule}
+                    </td>
+
+                    <td className="py-3 px-4 text-slate-600">
+                      <div>{std.parentName}</div>
+                      <div className="text-[11px] font-mono text-slate-400">{std.parentPhone}</div>
+                    </td>
+
+                    <td className="py-3 px-4">
+                      <div className="flex items-center justify-center gap-1.5">
                         <button
+                          type="button"
                           onClick={() => handleStatusChange(std.id, 'Présent')}
-                          className={`px-3 py-1 rounded-lg text-[10px] font-extrabold transition-all ${
-                            current === 'Présent'
-                              ? 'bg-emerald-600 text-white shadow-xs'
-                              : 'text-slate-600 hover:text-slate-900'
+                          className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
+                            currentStatus === 'Présent'
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                           }`}
                         >
                           Présent
                         </button>
-
                         <button
-                          onClick={() => handleStatusChange(std.id, 'Absent Non Justifié')}
-                          className={`px-3 py-1 rounded-lg text-[10px] font-extrabold transition-all ${
-                            current === 'Absent Non Justifié'
-                              ? 'bg-rose-600 text-white shadow-xs'
-                              : 'text-slate-600 hover:text-slate-900'
-                          }`}
-                        >
-                          Absent
-                        </button>
-
-                        <button
+                          type="button"
                           onClick={() => handleStatusChange(std.id, 'Retard')}
-                          className={`px-3 py-1 rounded-lg text-[10px] font-extrabold transition-all ${
-                            current === 'Retard'
-                              ? 'bg-amber-500 text-white shadow-xs'
-                              : 'text-slate-600 hover:text-slate-900'
+                          className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
+                            currentStatus === 'Retard'
+                              ? 'bg-sky-600 text-white'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                           }`}
                         >
                           Retard
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleStatusChange(std.id, 'Absent Non Justifié')}
+                          className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
+                            currentStatus === 'Absent Non Justifié'
+                              ? 'bg-rose-600 text-white'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          Absent
                         </button>
                       </div>
                     </td>

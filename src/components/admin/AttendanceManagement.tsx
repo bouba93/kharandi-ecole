@@ -4,15 +4,11 @@ import { absencesApi } from '../../services/api';
 import {
   UserCheck,
   Search,
-  Filter,
   Calendar,
   GraduationCap,
   AlertTriangle,
   CheckCircle2,
   Clock,
-  Send,
-  Bell,
-  X,
   FileText,
 } from 'lucide-react';
 
@@ -49,7 +45,6 @@ export const AttendanceManagement: React.FC = () => {
     loadAbsences();
   }, [selectedClassId, selectedStatus, selectedDate]);
 
-  // Filtered by search
   const filteredList = absencesList.filter((a) => {
     const student = students.find((s) => s.id === a.studentId);
     const fullName = student ? `${student.firstName} ${student.lastName}` : a.studentName || '';
@@ -60,7 +55,6 @@ export const AttendanceManagement: React.FC = () => {
     return matchesSearch && matchesClass && matchesStatus && matchesDate;
   });
 
-  // Calculate statistics
   const totalRecords = filteredList.length;
   const unexcusedCount = filteredList.filter((a) => a.status === 'Absent Non Justifié').length;
   const excusedCount = filteredList.filter((a) => a.status === 'Absent Justifié').length;
@@ -70,29 +64,25 @@ export const AttendanceManagement: React.FC = () => {
     switch (status) {
       case 'Présent':
         return (
-          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 w-fit">
-            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700">
             Présent
           </span>
         );
       case 'Absent Non Justifié':
         return (
-          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1 w-fit">
-            <AlertTriangle className="w-3 h-3 text-rose-600" />
+          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-50 text-rose-700">
             Non Justifié
           </span>
         );
       case 'Absent Justifié':
         return (
-          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1 w-fit">
-            <FileText className="w-3 h-3 text-amber-600" />
+          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700">
             Justifié
           </span>
         );
       case 'Retard':
         return (
-          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-50 text-sky-700 border border-sky-200 flex items-center gap-1 w-fit">
-            <Clock className="w-3 h-3 text-sky-600" />
+          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-sky-50 text-sky-700">
             Retard
           </span>
         );
@@ -102,18 +92,18 @@ export const AttendanceManagement: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-slate-900">Registre d'Assiduité & Absences</h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-200">
-              Contrôle Quotidien
+            <h1 className="text-xl font-bold text-slate-900">Suivi d'assiduité</h1>
+            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-600">
+              {totalRecords} relevés
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Suivi des appels de classe, alertes automatiques SMS aux parents et régularisation des absences.
+          <p className="text-xs text-slate-500 mt-0.5">
+            Historique des absences et retards signalés lors des appels quotidiens.
           </p>
         </div>
 
@@ -124,57 +114,53 @@ export const AttendanceManagement: React.FC = () => {
             setSelectedDate('');
             setSearchQuery('');
           }}
-          className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors w-fit"
+          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium transition-colors self-start sm:self-auto"
         >
           Réinitialiser filtres
         </button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
-          <p className="text-xs font-medium text-slate-500">Total Enregistrements</p>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-black text-slate-900">{totalRecords}</span>
-            <span className="text-xs text-slate-400">événements</span>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white p-4 rounded-xl border border-slate-200">
+          <p className="text-xs text-slate-500 font-medium">Total relevés</p>
+          <div className="mt-1">
+            <span className="text-2xl font-bold text-slate-900">{totalRecords}</span>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
-          <p className="text-xs font-medium text-slate-500">Absences Non Justifiées</p>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-black text-rose-600">{unexcusedCount}</span>
-            <span className="text-xs text-rose-500 font-bold">Alertes envoyées</span>
+        <div className="bg-white p-4 rounded-xl border border-slate-200">
+          <p className="text-xs text-slate-500 font-medium">Absences non justifiées</p>
+          <div className="mt-1">
+            <span className="text-2xl font-bold text-rose-600">{unexcusedCount}</span>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
-          <p className="text-xs font-medium text-slate-500">Absences Justifiées</p>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-black text-amber-700">{excusedCount}</span>
-            <span className="text-xs text-slate-400">avec motif</span>
+        <div className="bg-white p-4 rounded-xl border border-slate-200">
+          <p className="text-xs text-slate-500 font-medium">Absences justifiées</p>
+          <div className="mt-1">
+            <span className="text-2xl font-bold text-amber-700">{excusedCount}</span>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
-          <p className="text-xs font-medium text-slate-500">Retards Notés</p>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-black text-sky-700">{tardyCount}</span>
-            <span className="text-xs text-slate-400">retards</span>
+        <div className="bg-white p-4 rounded-xl border border-slate-200">
+          <p className="text-xs text-slate-500 font-medium">Retards</p>
+          <div className="mt-1">
+            <span className="text-2xl font-bold text-slate-900">{tardyCount}</span>
           </div>
         </div>
       </div>
 
       {/* Filters Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+      <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           {/* Class Select */}
-          <div className="flex items-center gap-2">
-            <GraduationCap className="w-4 h-4 text-slate-400" />
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-slate-500 font-medium">Classe :</span>
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500"
             >
               <option value="all">Toutes les classes</option>
               {classes.map((c) => (
@@ -186,118 +172,96 @@ export const AttendanceManagement: React.FC = () => {
           </div>
 
           {/* Status Select */}
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-400" />
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-slate-500 font-medium">Statut :</span>
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:border-emerald-500"
             >
               <option value="all">Tous les statuts</option>
-              <option value="Absent Non Justifié">Absence Non Justifiée</option>
-              <option value="Absent Justifié">Absence Justifiée</option>
+              <option value="Absent Non Justifié">Non Justifié</option>
+              <option value="Absent Justifié">Justifié</option>
               <option value="Retard">Retard</option>
               <option value="Présent">Présent</option>
             </select>
           </div>
 
           {/* Date Input */}
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-slate-400" />
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-slate-500 font-medium">Date :</span>
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-emerald-500 font-medium"
             />
           </div>
         </div>
 
         {/* Search */}
-        <div className="relative w-full md:w-64">
+        <div className="relative w-full sm:w-64">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Rechercher élève..."
+            placeholder="Rechercher par élève..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800"
+            className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-emerald-500 text-slate-800"
           />
         </div>
       </div>
 
       {/* Attendance Table */}
       {loading ? (
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-12 text-center shadow-xs">
-          <div className="w-8 h-8 border-2 border-sky-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-          <p className="text-xs text-slate-500">Chargement des relevés d'assiduité...</p>
+        <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-xs text-slate-500">
+          Chargement des présences...
         </div>
       ) : filteredList.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-12 text-center shadow-xs">
-          <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
-            <UserCheck className="w-6 h-6" />
-          </div>
-          <h3 className="text-sm font-bold text-slate-900 mb-1">Aucune absence enregistrée</h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Aucun relevé d'absence ne correspond aux critères sélectionnés. Tous les élèves sont réputés présents.
-          </p>
+        <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-xs text-slate-500">
+          Aucun événement d'absence enregistré.
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3 px-4">Date</th>
+                <tr className="bg-slate-50 border-b border-slate-200 font-semibold text-slate-700">
                   <th className="py-3 px-4">Élève</th>
                   <th className="py-3 px-4">Classe</th>
+                  <th className="py-3 px-4">Date</th>
                   <th className="py-3 px-4">Statut</th>
-                  <th className="py-3 px-4">Motif / Détails</th>
-                  <th className="py-3 px-4 text-center">Alerte Parent</th>
+                  <th className="py-3 px-4">Motif / Justification</th>
+                  <th className="py-3 px-4">Signalé par</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs">
+              <tbody className="divide-y divide-slate-100 text-slate-800">
                 {filteredList.map((a, idx) => {
                   const student = students.find((s) => s.id === a.studentId);
-
                   return (
-                    <tr key={a.id || idx} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="py-3 px-4 font-mono text-slate-600 text-[11px] whitespace-nowrap">
+                    <tr key={a.id || idx} className="hover:bg-slate-50 transition-colors">
+                      <td className="py-3 px-4 font-semibold text-slate-900">
+                        {student ? `${student.firstName} ${student.lastName}` : a.studentName || 'Élève'}
+                      </td>
+
+                      <td className="py-3 px-4 text-slate-700">
+                        {a.className || (student ? student.className : '—')}
+                      </td>
+
+                      <td className="py-3 px-4 font-mono text-slate-500 text-[11px]">
                         {a.date}
                       </td>
 
                       <td className="py-3 px-4">
-                        <div className="font-bold text-slate-900">
-                          {student ? `${student.firstName} ${student.lastName}` : a.studentName || 'Élève'}
-                        </div>
-                        <span className="text-[11px] text-slate-400 font-mono">
-                          {student ? student.matricule : '—'}
-                        </span>
+                        {getStatusBadge(a.status)}
                       </td>
-
-                      <td className="py-3 px-4">
-                        <span className="font-semibold text-slate-800">
-                          {a.className || student?.className || 'Classe'}
-                        </span>
-                      </td>
-
-                      <td className="py-3 px-4">{getStatusBadge(a.status)}</td>
 
                       <td className="py-3 px-4 text-slate-600 text-[11px]">
-                        {a.status === 'Retard' && a.minutesLate
-                          ? `${a.minutesLate} minutes de retard`
-                          : a.reason || 'Non précisé'}
+                        {a.reason || (a.status === 'Absent Non Justifié' ? 'Aucun justificatif fourni' : '—')}
                       </td>
 
-                      <td className="py-3 px-4 text-center">
-                        {a.notifiedParent ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                            <Send className="w-3 h-3 text-emerald-600" />
-                            SMS Envoyé
-                          </span>
-                        ) : (
-                          <span className="text-slate-400 text-[11px]">—</span>
-                        )}
+                      <td className="py-3 px-4 text-slate-500 text-[11px]">
+                        {a.recordedBy || 'Prof. Principal'}
                       </td>
                     </tr>
                   );

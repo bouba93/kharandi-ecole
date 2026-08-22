@@ -61,10 +61,25 @@ export interface StudentEntity {
   className: string;
   level: 'Primaire' | 'Collège' | 'Lycée';
   photoUrl?: string;
+  
+  // Médical & Contact
+  bloodType?: string;
+  medicalNotes?: string;
+  emergencyContact?: string;
+  
+  // Tuteurs & Parents
   parentName: string;
   parentPhone: string;
-  parentEmail: string;
+  parentEmail?: string;
   address: string;
+  fatherName?: string;
+  fatherPhone?: string;
+  fatherJob?: string;
+  motherName?: string;
+  motherPhone?: string;
+  motherJob?: string;
+  tutorRelationship?: string;
+
   enrollmentDate: string;
   tuitionTotal: number;
   tuitionPaid: number;
@@ -91,6 +106,7 @@ export interface ClassEntity {
 export interface GradeEntity {
   id: string;
   studentId: string;
+  studentName?: string;
   subjectId: string;
   subjectName: string;
   trimester: 1 | 2 | 3;
@@ -100,6 +116,39 @@ export interface GradeEntity {
   date: string;
   coefficient: number;
   comment?: string;
+}
+
+export interface EvaluationPeriodEntity {
+  id: string;
+  schoolId: string;
+  trimester: 1 | 2 | 3;
+  title: string;
+  startDate: string;
+  endDate: string;
+  gradingDeadline: string;
+  deliberationDate?: string;
+  status: 'upcoming' | 'active' | 'closed';
+}
+
+export interface ScheduledEvaluationEntity {
+  id: string;
+  schoolId: string;
+  periodId: string;
+  trimester: 1 | 2 | 3;
+  classId: string;
+  className: string;
+  subjectId: string;
+  subjectName: string;
+  type: 'Interrogation' | 'Devoir 1' | 'Devoir 2' | 'Composition' | 'Examen Blanc';
+  title: string;
+  date: string;
+  startTime: string;
+  durationMinutes: number;
+  roomNumber: string;
+  coefficient: number;
+  supervisorName: string;
+  status: 'planifié' | 'en_cours' | 'terminé' | 'noté';
+  maxScore: number;
 }
 
 export interface AttendanceEntity {
@@ -179,6 +228,145 @@ class DataStore {
       status: 'active',
       createdAt: '2025-08-15T08:00:00.000Z',
     }
+  ];
+
+  public evaluationPeriods: EvaluationPeriodEntity[] = [
+    {
+      id: 'per-trim-1',
+      schoolId: 'sch-gn-001',
+      trimester: 1,
+      title: '1er Trimestre — Évaluations & Compositions',
+      startDate: '2025-10-15',
+      endDate: '2025-12-15',
+      gradingDeadline: '2025-12-20',
+      deliberationDate: '2025-12-22',
+      status: 'active',
+    },
+    {
+      id: 'per-trim-2',
+      schoolId: 'sch-gn-001',
+      trimester: 2,
+      title: '2ème Trimestre — Évaluations & Compositions',
+      startDate: '2026-01-10',
+      endDate: '2026-03-25',
+      gradingDeadline: '2026-03-30',
+      deliberationDate: '2026-04-02',
+      status: 'upcoming',
+    },
+    {
+      id: 'per-trim-3',
+      schoolId: 'sch-gn-001',
+      trimester: 3,
+      title: '3ème Trimestre — Examens Blancs & Passage',
+      startDate: '2026-04-15',
+      endDate: '2026-06-20',
+      gradingDeadline: '2026-06-25',
+      deliberationDate: '2026-06-28',
+      status: 'upcoming',
+    },
+  ];
+
+  public scheduledEvaluations: ScheduledEvaluationEntity[] = [
+    {
+      id: 'eval-001',
+      schoolId: 'sch-gn-001',
+      periodId: 'per-trim-1',
+      trimester: 1,
+      classId: 'cls-t-sm1',
+      className: 'Terminale SM 1',
+      subjectId: 'sub-math-sm',
+      subjectName: 'Mathématiques',
+      type: 'Devoir 1',
+      title: 'Devoir Surveillé N°1 - Fonctions Logarithmes & Suites',
+      date: '2025-10-15',
+      startTime: '08:00',
+      durationMinutes: 180,
+      roomNumber: 'Salle 204 (Bac)',
+      coefficient: 5,
+      supervisorName: 'Prof. Souleymane Camara',
+      status: 'noté',
+      maxScore: 20,
+    },
+    {
+      id: 'eval-002',
+      schoolId: 'sch-gn-001',
+      periodId: 'per-trim-1',
+      trimester: 1,
+      classId: 'cls-t-sm1',
+      className: 'Terminale SM 1',
+      subjectId: 'sub-phys-sm',
+      subjectName: 'Physique-Chimie',
+      type: 'Composition',
+      title: 'Composition Trimestrielle de Physique-Chimie',
+      date: '2025-11-01',
+      startTime: '08:30',
+      durationMinutes: 180,
+      roomNumber: 'Salle 204 (Bac)',
+      coefficient: 4,
+      supervisorName: 'Prof. Mamadou Alpha Bah',
+      status: 'noté',
+      maxScore: 20,
+    },
+    {
+      id: 'eval-003',
+      schoolId: 'sch-gn-001',
+      periodId: 'per-trim-1',
+      trimester: 1,
+      classId: 'cls-10-a',
+      className: '10ème Année A (BEPC)',
+      subjectId: 'sub-fr-col',
+      subjectName: 'Français',
+      type: 'Devoir 1',
+      title: 'Devoir Surveillé N°1 - Dictée & Questions de Texte',
+      date: '2025-10-18',
+      startTime: '10:00',
+      durationMinutes: 120,
+      roomNumber: 'Salle 102',
+      coefficient: 4,
+      supervisorName: 'Prof. Fatoumata Diallo',
+      status: 'noté',
+      maxScore: 20,
+    },
+    {
+      id: 'eval-004',
+      schoolId: 'sch-gn-001',
+      periodId: 'per-trim-1',
+      trimester: 1,
+      classId: 'cls-10-a',
+      className: '10ème Année A (BEPC)',
+      subjectId: 'sub-math-col',
+      subjectName: 'Mathématiques',
+      type: 'Devoir 2',
+      title: 'Devoir Surveillé N°2 - Calcul Littéral & Théorème de Thalès',
+      date: '2025-11-18',
+      startTime: '08:00',
+      durationMinutes: 120,
+      roomNumber: 'Salle 102',
+      coefficient: 4,
+      supervisorName: 'Prof. Souleymane Camara',
+      status: 'planifié',
+      maxScore: 20,
+    },
+    {
+      id: 'eval-005',
+      schoolId: 'sch-gn-001',
+      periodId: 'per-trim-1',
+      trimester: 1,
+      classId: 'cls-6-ann',
+      className: '6ème Année B (CEE)',
+      subjectId: 'sub-calc-prim',
+      subjectName: 'Calcul',
+      type: 'Composition',
+      title: 'Évaluation Harmonisée Trimestrielle - Opérations & Problèmes',
+      date: '2025-11-20',
+      startTime: '09:00',
+      durationMinutes: 90,
+      roomNumber: 'Salle 04',
+      coefficient: 5,
+      supervisorName: 'Prof. Aïssatou Sow',
+      status: 'planifié',
+      maxScore: 20,
+    },
   ];
 
   public teachers: TeacherEntity[] = [
@@ -306,9 +494,19 @@ class DataStore {
       className: '10ème Année A (BEPC)',
       level: 'Collège',
       photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+      bloodType: 'O+',
+      medicalNotes: 'R.A.S - Aucune allergie connue',
+      emergencyContact: '+224 622 34 56 78',
       parentName: 'M. Ousmane Barry',
       parentPhone: '+224 622 34 56 78',
       parentEmail: 'ousmane.barry@gmail.com',
+      fatherName: 'Ousmane Barry',
+      fatherPhone: '+224 622 34 56 78',
+      fatherJob: 'Commerçant',
+      motherName: 'Hadja Rabiatou Diallo',
+      motherPhone: '+224 628 11 22 33',
+      motherJob: 'Enseignante',
+      tutorRelationship: 'Père',
       address: 'Kipé, Ratoma, Conakry',
       enrollmentDate: '2025-09-02',
       tuitionTotal: 1800000,
@@ -328,9 +526,19 @@ class DataStore {
       className: 'Terminale SM 1',
       level: 'Lycée',
       photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
+      bloodType: 'A+',
+      medicalNotes: 'Légère myopie (porte des lunettes)',
+      emergencyContact: '+224 628 88 99 00',
       parentName: 'Mme Mariama Ciré Diallo',
       parentPhone: '+224 628 88 99 00',
       parentEmail: 'mariama.diallo@orange.gn',
+      fatherName: 'Amadou Diallo (Décédé)',
+      fatherPhone: '',
+      fatherJob: 'Ancien Fonctionnaire',
+      motherName: 'Mariama Ciré Diallo',
+      motherPhone: '+224 628 88 99 00',
+      motherJob: 'Cadre Télécoms',
+      tutorRelationship: 'Mère',
       address: 'Lambanyi, Conakry',
       enrollmentDate: '2025-09-01',
       tuitionTotal: 2200000,
@@ -350,9 +558,19 @@ class DataStore {
       className: 'Terminale SM 1',
       level: 'Lycée',
       photoUrl: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=300&q=80',
+      bloodType: 'B+',
+      medicalNotes: 'Asthme modéré (Ventoline en cas de crise)',
+      emergencyContact: '+224 664 12 45 78',
       parentName: 'Dr. Sekou Camara',
       parentPhone: '+224 664 12 45 78',
       parentEmail: 'sekou.camara@sante.gov.gn',
+      fatherName: 'Dr. Sekou Camara',
+      fatherPhone: '+224 664 12 45 78',
+      fatherJob: 'Médecin Chirurgien',
+      motherName: 'Fanta Kourouma',
+      motherPhone: '+224 620 55 66 77',
+      motherJob: 'Pharmacienne',
+      tutorRelationship: 'Père',
       address: 'Nongo Taady, Conakry',
       enrollmentDate: '2025-09-01',
       tuitionTotal: 2200000,
@@ -372,10 +590,20 @@ class DataStore {
       className: '10ème Année A (BEPC)',
       level: 'Collège',
       photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
+      bloodType: 'AB+',
+      medicalNotes: 'R.A.S',
+      emergencyContact: '+224 621 55 44 33',
       parentName: 'Elhadj Fodé Conde',
       parentPhone: '+224 621 55 44 33',
       parentEmail: 'fode.conde@yahoo.fr',
-      address: 'Coza, Conakry',
+      fatherName: 'Fodé Conde',
+      fatherPhone: '+224 621 55 44 33',
+      fatherJob: 'Opérateur Économique',
+      motherName: 'Aminata Diakité',
+      motherPhone: '+224 625 33 22 11',
+      motherJob: 'Ménagère',
+      tutorRelationship: 'Père',
+      address: 'Cosa, Conakry',
       enrollmentDate: '2025-09-03',
       tuitionTotal: 1800000,
       tuitionPaid: 600000,
@@ -394,9 +622,19 @@ class DataStore {
       className: '6ème Année B (CEE)',
       level: 'Primaire',
       photoUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80',
+      bloodType: 'O+',
+      medicalNotes: 'R.A.S',
+      emergencyContact: '+224 620 99 88 77',
       parentName: 'M. Alpha Oumar Bah',
       parentPhone: '+224 620 99 88 77',
       parentEmail: 'alpha.bah@gn.telecom.com',
+      fatherName: 'Alpha Oumar Bah',
+      fatherPhone: '+224 620 99 88 77',
+      fatherJob: 'Ingénieur Télécom',
+      motherName: 'Djenabou Diallo',
+      motherPhone: '+224 627 88 77 66',
+      motherJob: 'Comptable',
+      tutorRelationship: 'Père',
       address: 'Sangoyah, Matoto',
       enrollmentDate: '2025-09-05',
       tuitionTotal: 1400000,
@@ -416,9 +654,19 @@ class DataStore {
       className: 'Terminale SM 1',
       level: 'Lycée',
       photoUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=300&q=80',
+      bloodType: 'A-',
+      medicalNotes: 'R.A.S',
+      emergencyContact: '+224 625 77 66 55',
       parentName: 'Mme Nagnouma Sylla',
       parentPhone: '+224 625 77 66 55',
       parentEmail: 'nagnouma.sylla@gmail.com',
+      fatherName: 'Lamine Sylla',
+      fatherPhone: '+224 629 00 11 22',
+      fatherJob: 'Juriste',
+      motherName: 'Nagnouma Sylla',
+      motherPhone: '+224 625 77 66 55',
+      motherJob: 'Consultante',
+      tutorRelationship: 'Mère',
       address: 'Hamdallaye, Conakry',
       enrollmentDate: '2025-09-02',
       tuitionTotal: 2200000,
@@ -487,7 +735,7 @@ class DataStore {
       className: '10ème Année A (BEPC)',
       issueDate: '2025-09-10',
       expiryDate: '2026-07-31',
-      qrCodeData: 'KHARANDI:AUTH:KH-2025-0101:SCH-GN-001:VERIFIED',
+      qrCodeData: 'ECOLE:AUTH:KH-2025-0101:SCH-GN-001:VERIFIED',
       status: 'active',
       badgeType: 'carte_scolaire',
       downloadedCount: 3,
@@ -501,7 +749,7 @@ class DataStore {
       className: 'Terminale SM 1',
       issueDate: '2025-09-10',
       expiryDate: '2026-07-31',
-      qrCodeData: 'KHARANDI:AUTH:KH-2025-0102:SCH-GN-001:VERIFIED',
+      qrCodeData: 'ECOLE:AUTH:KH-2025-0102:SCH-GN-001:VERIFIED',
       status: 'active',
       badgeType: 'carte_scolaire',
       downloadedCount: 1,
@@ -515,7 +763,7 @@ class DataStore {
       className: 'Terminale SM 1',
       issueDate: '2025-09-10',
       expiryDate: '2026-07-31',
-      qrCodeData: 'KHARANDI:AUTH:KH-2025-0103:SCH-GN-001:VERIFIED',
+      qrCodeData: 'ECOLE:AUTH:KH-2025-0103:SCH-GN-001:VERIFIED',
       status: 'active',
       badgeType: 'excellence',
       downloadedCount: 5,
@@ -529,7 +777,7 @@ class DataStore {
       studentName: 'Ibrahima Sory Diallo',
       parentPhone: '+224 628 88 99 00',
       title: 'Alerte Absence',
-      message: 'Kharandi École : Votre enfant Ibrahima Sory Diallo a été noté absent non justifié le 03/11/2025 à 08:00 en cours de Physique-Chimie.',
+      message: 'Avis École : Votre enfant Ibrahima Sory Diallo a été noté absent non justifié le 03/11/2025 à 08:00 en cours de Physique-Chimie.',
       type: 'absence',
       channel: 'SMS',
       sentAt: '2025-11-03 08:15',
@@ -578,10 +826,10 @@ class DataStore {
       paymentMethod: 'Orange Money',
       transactionRef: 'OM224-884920',
       phoneNumber: '+224 622 34 56 78',
-      trimesterLabel: 'Solde Annuel + Forfait Kharandi',
+      trimesterLabel: 'Solde Annuel',
       date: '2025-09-02 10:14',
       status: 'Payé',
-      issuedBy: 'Comptabilité Kharandi',
+      issuedBy: 'Comptabilité École',
     },
     {
       id: 'pay-002',
@@ -598,7 +846,7 @@ class DataStore {
       trimesterLabel: 'Solde Total Baccalauréat',
       date: '2025-09-01 14:30',
       status: 'Payé',
-      issuedBy: 'Comptabilité Kharandi',
+      issuedBy: 'Comptabilité École',
     },
     {
       id: 'pay-003',
@@ -611,7 +859,7 @@ class DataStore {
       kharandiFee: 60000,
       paymentMethod: 'Espèces',
       transactionRef: 'CASH-0029',
-      trimesterLabel: '1ère Tranche + Forfait Kharandi',
+      trimesterLabel: '1ère Tranche',
       date: '2025-09-01 11:00',
       status: 'Payé',
       issuedBy: 'M. Sylla (Caisse)',
@@ -620,3 +868,4 @@ class DataStore {
 }
 
 export const store = new DataStore();
+

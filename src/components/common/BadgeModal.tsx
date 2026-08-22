@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { Student } from '../../types';
-import { SCHOOL_INFO } from '../../data/initialData';
-import { X, Printer, Download, ShieldCheck, QrCode } from 'lucide-react';
+import { useSchool } from '../../context/SchoolContext';
+import { X, Printer, QrCode, ShieldCheck, HeartPulse } from 'lucide-react';
 
 interface BadgeModalProps {
   student: Student;
@@ -9,6 +9,7 @@ interface BadgeModalProps {
 }
 
 export const BadgeModal: React.FC<BadgeModalProps> = ({ student, onClose }) => {
+  const { schoolInfo } = useSchool();
   const badgeRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
@@ -16,13 +17,16 @@ export const BadgeModal: React.FC<BadgeModalProps> = ({ student, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-xl border border-slate-100 max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-100">
+        <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-200">
           <div className="flex items-center space-x-2">
-            <ShieldCheck className="w-5 h-5 text-[#18bfd6]" />
-            <h3 className="font-semibold text-slate-800">Badge Scolaire Digital</h3>
+            <ShieldCheck className="w-5 h-5 text-gn-green" />
+            <div>
+              <h3 className="font-bold text-slate-900 text-sm">Carte d'Identité Scolaire Officielle</h3>
+              <p className="text-[11px] text-slate-500">Document Scolaire Officiel</p>
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -32,101 +36,126 @@ export const BadgeModal: React.FC<BadgeModalProps> = ({ student, onClose }) => {
           </button>
         </div>
 
-        {/* Badge Card Container (Printable) */}
-        <div className="p-6 flex flex-col items-center">
+        {/* Printable Student Card Container */}
+        <div className="p-6 flex flex-col items-center bg-slate-100">
           <div
+            id="printable-badge"
             ref={badgeRef}
-            className="w-[320px] bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl p-5 shadow-2xl border-2 border-[#fcb303]/40 relative overflow-hidden text-center"
+            className="w-[360px] bg-white text-slate-900 rounded-xl shadow-lg border-2 border-slate-300 relative overflow-hidden text-left"
           >
-            {/* Watermark / Background Ornament */}
-            <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-[#18bfd6]/10 rounded-full blur-2xl pointer-events-none" />
-            <div className="absolute -left-10 -top-10 w-40 h-40 bg-[#fcb303]/10 rounded-full blur-2xl pointer-events-none" />
+            {/* Top Guinean National Ribbon (Red, Yellow, Green) */}
+            <div className="h-2 w-full flex">
+              <div className="w-1/3 bg-gn-red"></div>
+              <div className="w-1/3 bg-gn-yellow"></div>
+              <div className="w-1/3 bg-gn-green"></div>
+            </div>
 
-            {/* School Header */}
-            <div className="border-b border-slate-700/80 pb-3 mb-4">
-              <span className="text-[10px] font-semibold tracking-wider text-[#fcb303] uppercase block">
-                RÉPUBLIQUE DE GUINÉE
-              </span>
-              <h4 className="text-sm font-bold tracking-tight text-white uppercase leading-snug">
-                {SCHOOL_INFO.name}
+             {/* School & Republic Header */}
+            <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 text-center">
+              <h4 className="text-xs font-black text-slate-900 uppercase tracking-tight mt-1">
+                {schoolInfo.name}
               </h4>
-              <p className="text-[10px] text-slate-400 mt-0.5">{SCHOOL_INFO.dpe}</p>
-            </div>
-
-            {/* Student Photo */}
-            <div className="relative inline-block mb-3">
-              <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-[#18bfd6] shadow-md mx-auto bg-slate-700">
-                <img
-                  src={student.photoUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80'}
-                  alt={`${student.firstName} ${student.lastName}`}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#fcb303] text-slate-950 font-extrabold text-[10px] px-2.5 py-0.5 rounded-full shadow">
-                ÉLÈVE
-              </span>
-            </div>
-
-            {/* Name & Class */}
-            <h3 className="text-lg font-bold text-white leading-tight mt-1">
-              {student.firstName} {student.lastName}
-            </h3>
-            <p className="text-xs font-semibold text-[#18bfd6] mt-0.5">{student.className}</p>
-
-            {/* Details Table */}
-            <div className="mt-4 bg-slate-800/80 rounded-xl p-3 text-left text-xs space-y-1.5 border border-slate-700/50">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Matricule :</span>
-                <span className="font-mono font-bold text-white">{student.matricule}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Né(e) le :</span>
-                <span className="text-slate-200">{student.birthDate} ({student.birthPlace})</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Tuteur :</span>
-                <span className="text-slate-200 truncate max-w-[150px]">{student.parentName}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Urgence :</span>
-                <span className="font-mono text-[#fcb303]">{student.parentPhone}</span>
+              <p className="text-[9px] text-slate-600 font-medium">
+                {schoolInfo.dpe}
+              </p>
+              
+              <div className="mt-1 inline-block bg-sky-600 text-white font-bold text-[9px] uppercase px-3 py-0.5 rounded-full tracking-wider shadow-xs">
+                CARTE D'IDENTITÉ SCOLAIRE • {schoolInfo.schoolYear || '2025-2026'}
               </div>
             </div>
 
-            {/* QR Code & Kharandi Footer */}
-            <div className="mt-4 pt-3 border-t border-slate-700/80 flex items-center justify-between">
-              <div className="flex items-center space-x-2 text-left">
-                <div className="bg-white p-1 rounded-lg">
-                  <QrCode className="w-8 h-8 text-slate-900" />
+            {/* Card Body: Photo & Student Core Info */}
+            <div className="p-4 space-y-3">
+              <div className="flex items-center gap-3.5">
+                {/* Photo with official colored border */}
+                <div className="w-20 h-24 rounded-lg overflow-hidden border-2 border-slate-800 shadow-sm shrink-0 bg-slate-200">
+                  <img
+                    src={student.photoUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80'}
+                    alt={`${student.firstName} ${student.lastName}`}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <div>
-                  <span className="text-[9px] text-slate-400 block uppercase">Vérification QR</span>
-                  <span className="text-[10px] text-emerald-400 font-bold">Actif • 2025/2026</span>
+
+                {/* Main Identity */}
+                <div className="space-y-1 text-xs">
+                  <h3 className="text-sm font-black text-slate-900 uppercase leading-tight">
+                    {student.firstName} {student.lastName}
+                  </h3>
+                  <p className="font-mono text-[11px] font-bold text-gn-green">
+                    MAT : {student.matricule}
+                  </p>
+                  <p className="text-[11px] font-bold text-slate-800">
+                    CLASSE : <span className="text-slate-900">{student.className} ({student.level})</span>
+                  </p>
+                  <p className="text-[10px] text-slate-600">
+                    Né(e) le : <strong className="text-slate-800">{student.birthDate}</strong> à <strong className="text-slate-800">{student.birthPlace || 'Conakry'}</strong>
+                  </p>
                 </div>
               </div>
 
-              <div className="text-right">
-                <span className="text-[9px] text-slate-400 block">Propulsé par</span>
-                <span className="text-xs font-bold text-[#18bfd6]">Kharandi École</span>
+              {/* Medical & Family Contact Strip */}
+              <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200 text-[10px] space-y-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-600 font-medium">Groupe Sanguin :</span>
+                  <span className="inline-flex items-center gap-1 font-bold text-gn-red bg-white px-1.5 py-0.2 rounded border border-rose-200">
+                    <HeartPulse className="w-3 h-3 text-gn-red" />
+                    {student.bloodType || 'O+'}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-600 font-medium">Tuteur Responsable :</span>
+                  <span className="font-bold text-slate-900 truncate max-w-[170px]">{student.parentName}</span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-600 font-medium">Contact d'Urgence :</span>
+                  <span className="font-mono font-bold text-slate-900">{student.emergencyContact || student.parentPhone}</span>
+                </div>
               </div>
+
+              {/* QR Verification & Stamp Box */}
+              <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="bg-white p-1 rounded border border-slate-300">
+                    <QrCode className="w-7 h-7 text-slate-900" />
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-slate-500 block uppercase font-bold">Vérification QR</span>
+                    <span className="text-[9px] text-gn-green font-bold">Document Certifié</span>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <span className="text-[8px] text-slate-500 block uppercase font-semibold">Le Chef d'Établissement</span>
+                  <span className="text-[9px] font-bold text-slate-800 uppercase italic">Cachet & Signature</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Guinean National Ribbon */}
+            <div className="h-1.5 w-full flex">
+              <div className="w-1/3 bg-gn-red"></div>
+              <div className="w-1/3 bg-gn-yellow"></div>
+              <div className="w-1/3 bg-gn-green"></div>
             </div>
           </div>
         </div>
 
         {/* Modal Actions */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end space-x-3">
+        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-800 rounded-xl hover:bg-slate-200/60 transition-colors"
+            className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-800 rounded-lg hover:bg-slate-200/60 transition-colors"
           >
             Fermer
           </button>
           <button
             onClick={handlePrint}
-            className="px-4 py-2 text-xs font-semibold text-white bg-[#18bfd6] hover:bg-[#15aabf] rounded-xl shadow-sm inline-flex items-center space-x-2 transition-all"
+            className="px-4 py-2 text-xs font-bold text-white bg-gn-green hover:bg-emerald-800 rounded-lg shadow-xs inline-flex items-center space-x-2 transition-all"
           >
             <Printer className="w-4 h-4" />
-            <span>Imprimer Badge</span>
+            <span>Imprimer la Carte Scolaire</span>
           </button>
         </div>
       </div>

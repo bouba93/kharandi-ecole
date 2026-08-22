@@ -34,10 +34,6 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ payment, onClose }) 
         <div className="p-8 bg-white text-slate-800 font-sans" id="printable-receipt">
           {/* Header */}
           <div className="text-center border-b border-slate-200 pb-4 mb-6">
-            <p className="text-[10px] font-bold tracking-widest text-[#fcb303] uppercase">
-              RÉPUBLIQUE DE GUINÉE
-            </p>
-            <p className="text-[10px] text-slate-500 italic mb-1">Travail - Justice - Solidarité</p>
             <h2 className="text-lg font-extrabold text-slate-900 uppercase tracking-tight">
               {SCHOOL_INFO.name}
             </h2>
