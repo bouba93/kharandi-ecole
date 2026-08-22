@@ -366,91 +366,212 @@ export const BulletinBadgeStudio: React.FC = () => {
             {/* Live Student Badge */}
             {student && (
               <div className="flex justify-center p-4 bg-slate-100 rounded-xl">
-                <div className="w-[360px] bg-white text-slate-900 rounded-2xl shadow-xl border-2 border-slate-300 relative overflow-hidden text-left">
-                  {/* Top Accent Ribbon */}
-                  <div className={`h-2.5 w-full bg-gradient-to-r ${currentTheme.primary}`}></div>
+                {badgeStyle === 'modern' && (
+                  <div className="w-[360px] bg-white text-slate-900 rounded-2xl shadow-xl border-2 border-slate-300 relative overflow-hidden text-left">
+                    {/* Top Accent Ribbon */}
+                    <div className={`h-2.5 w-full bg-gradient-to-r ${currentTheme.primary}`}></div>
 
-                  {/* Header */}
-                  <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 text-center">
-                    <h4 className="text-xs font-black text-slate-900 uppercase tracking-tight">
-                      {schoolInfo.name}
-                    </h4>
-                    <p className="text-[9px] text-slate-600 font-medium">
-                      {schoolInfo.dpe}
-                    </p>
-                    <div className={`mt-1.5 inline-block ${currentTheme.badgeBg} text-white font-bold text-[9px] uppercase px-3 py-0.5 rounded-full tracking-wider shadow-xs`}>
-                      CARTE D'IDENTITÉ SCOLAIRE • {schoolInfo.schoolYear}
-                    </div>
-                  </div>
-
-                  {/* Body */}
-                  <div className="p-4 space-y-3">
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-20 h-24 rounded-lg overflow-hidden border-2 border-slate-800 shadow-sm shrink-0 bg-slate-200">
-                        <img
-                          src={student.photoUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80'}
-                          alt={`${student.firstName} ${student.lastName}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-
-                      <div className="space-y-1 text-xs">
-                        <h3 className="text-sm font-black text-slate-900 uppercase leading-tight">
-                          {student.firstName} {student.lastName}
-                        </h3>
-                        <p className={`font-mono text-[11px] font-bold ${currentTheme.text}`}>
-                          MAT : {student.matricule}
-                        </p>
-                        <p className="text-[11px] font-bold text-slate-800">
-                          CLASSE : <span className="text-slate-900">{student.className}</span>
-                        </p>
-                        <p className="text-[10px] text-slate-600">
-                          Né(e) le : <strong className="text-slate-800">{student.birthDate}</strong>
-                        </p>
+                    {/* Header */}
+                    <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 text-center">
+                      <h4 className="text-xs font-black text-slate-900 uppercase tracking-tight">
+                        {schoolInfo.name}
+                      </h4>
+                      <p className="text-[9px] text-slate-600 font-medium">
+                        {schoolInfo.dpe}
+                      </p>
+                      <div className={`mt-1.5 inline-block ${currentTheme.badgeBg} text-white font-bold text-[9px] uppercase px-3 py-0.5 rounded-full tracking-wider shadow-xs`}>
+                        CARTE D'IDENTITÉ SCOLAIRE • {schoolInfo.schoolYear}
                       </div>
                     </div>
 
-                    {/* Contact Strip */}
-                    <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200 text-[10px] space-y-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-600 font-medium">Groupe Sanguin :</span>
-                        <span className="inline-flex items-center gap-1 font-bold text-rose-600 bg-white px-1.5 py-0.2 rounded border border-rose-200">
-                          <HeartPulse className="w-3 h-3 text-rose-600" />
-                          {student.bloodType || 'O+'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-600 font-medium">Tuteur :</span>
-                        <span className="font-bold text-slate-900">{student.parentName}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-600 font-medium">Urgence :</span>
-                        <span className="font-mono font-bold text-slate-900">{student.parentPhone}</span>
-                      </div>
-                    </div>
-
-                    {/* QR Verification */}
-                    <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="bg-white p-1 rounded border border-slate-300">
-                          <QrCode className="w-7 h-7 text-slate-900" />
+                    {/* Body */}
+                    <div className="p-4 space-y-3">
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-20 h-24 rounded-xl overflow-hidden border-2 border-slate-800 shadow-sm shrink-0 bg-slate-200">
+                          <img
+                            src={student.photoUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80'}
+                            alt={`${student.firstName} ${student.lastName}`}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
-                        <div>
-                          <span className="text-[8px] text-slate-500 block uppercase font-bold">Vérification QR</span>
-                          <span className={`text-[9px] font-bold ${currentTheme.text}`}>Document Certifié</span>
+
+                        <div className="space-y-1 text-xs">
+                          <h3 className="text-sm font-black text-slate-900 uppercase leading-tight">
+                            {student.firstName} {student.lastName}
+                          </h3>
+                          <p className={`font-mono text-[11px] font-bold ${currentTheme.text}`}>
+                            MAT : {student.matricule}
+                          </p>
+                          <p className="text-[11px] font-bold text-slate-800">
+                            CLASSE : <span className="text-slate-900">{student.className}</span>
+                          </p>
+                          <p className="text-[10px] text-slate-600">
+                            Né(e) le : <strong className="text-slate-800">{student.birthDate}</strong>
+                          </p>
                         </div>
                       </div>
 
-                      <div className="text-right">
-                        <span className="text-[8px] text-slate-500 block uppercase font-semibold">Le Directeur</span>
-                        <span className="text-[9px] font-bold text-slate-800 uppercase italic">{directorName}</span>
+                      {/* Contact Strip */}
+                      <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200 text-[10px] space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-600 font-medium">Groupe Sanguin :</span>
+                          <span className="inline-flex items-center gap-1 font-bold text-rose-600 bg-white px-1.5 py-0.2 rounded border border-rose-200">
+                            <HeartPulse className="w-3 h-3 text-rose-600" />
+                            {student.bloodType || 'O+'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-600 font-medium">Tuteur :</span>
+                          <span className="font-bold text-slate-900">{student.parentName}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-600 font-medium">Urgence :</span>
+                          <span className="font-mono font-bold text-slate-900">{student.parentPhone}</span>
+                        </div>
+                      </div>
+
+                      {/* QR Verification */}
+                      <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="bg-white p-1 rounded border border-slate-300">
+                            <QrCode className="w-7 h-7 text-slate-900" />
+                          </div>
+                          <div>
+                            <span className="text-[8px] text-slate-500 block uppercase font-bold">Vérification QR</span>
+                            <span className={`text-[9px] font-bold ${currentTheme.text}`}>Document Certifié</span>
+                          </div>
+                        </div>
+
+                        <div className="text-right">
+                          <span className="text-[8px] text-slate-500 block uppercase font-semibold">Le Directeur</span>
+                          <span className="text-[9px] font-bold text-slate-800 uppercase italic">{directorName}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom Accent Ribbon */}
+                    <div className={`h-2 w-full bg-gradient-to-r ${currentTheme.primary}`}></div>
+                  </div>
+                )}
+
+                {badgeStyle === 'classic' && (
+                  <div className="w-[360px] bg-amber-50/40 text-slate-900 rounded-lg shadow-xl border-4 border-slate-800 relative overflow-hidden text-left">
+                    {/* Classic Header */}
+                    <div className="px-4 py-3 bg-slate-900 text-white text-center border-b-2 border-amber-600">
+                      <h4 className="text-xs font-serif font-bold uppercase tracking-widest text-amber-300">
+                        RÉPUBLIQUE DE GUINÉE
+                      </h4>
+                      <h3 className="text-sm font-black tracking-tight mt-0.5">
+                        {schoolInfo.name}
+                      </h3>
+                      <p className="text-[9px] text-slate-300 font-mono">
+                        {schoolInfo.dpe} • CARTE OFFICIELLE ({schoolInfo.schoolYear})
+                      </p>
+                    </div>
+
+                    {/* Body */}
+                    <div className="p-4 space-y-3">
+                      <div className="flex items-center gap-4 bg-white p-3 rounded border border-slate-300 shadow-inner">
+                        <div className="w-20 h-24 rounded border border-slate-900 overflow-hidden shrink-0 bg-slate-200 shadow">
+                          <img
+                            src={student.photoUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80'}
+                            alt={`${student.firstName} ${student.lastName}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+
+                        <div className="space-y-1 text-xs font-serif">
+                          <h3 className="text-sm font-bold text-slate-900 uppercase">
+                            {student.lastName} {student.firstName}
+                          </h3>
+                          <p className="text-[11px] font-mono font-bold text-amber-800">
+                            Matricule : {student.matricule}
+                          </p>
+                          <p className="text-[11px] text-slate-800">
+                            Classe : <strong>{student.className}</strong>
+                          </p>
+                          <p className="text-[10px] text-slate-600">
+                            Né(e) le : {student.birthDate}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Contact & Blood */}
+                      <div className="bg-white p-2.5 rounded border border-slate-300 text-[10px] space-y-1 font-serif">
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Groupe Sanguin :</span>
+                          <span className="font-bold text-rose-700">{student.bloodType || 'O+'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Parent / Tuteur :</span>
+                          <span className="font-bold text-slate-900">{student.parentName} ({student.parentPhone})</span>
+                        </div>
+                      </div>
+
+                      {/* Footer Signature */}
+                      <div className="pt-2 flex justify-between items-center text-[10px]">
+                        <div className="w-10 h-10 border border-slate-400 p-0.5 bg-white">
+                          <QrCode className="w-full h-full text-slate-900" />
+                        </div>
+                        <div className="text-right font-serif">
+                          <span className="block text-[9px] text-slate-500 uppercase">Visa du Directeur</span>
+                          <span className="font-bold text-slate-900 italic text-[11px]">{directorName}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
+                )}
 
-                  {/* Bottom Accent Ribbon */}
-                  <div className={`h-2 w-full bg-gradient-to-r ${currentTheme.primary}`}></div>
-                </div>
+                {badgeStyle === 'minimal' && (
+                  <div className="w-[360px] bg-white text-slate-900 rounded-sm shadow-md border border-slate-400 relative overflow-hidden text-left font-sans">
+                    {/* Minimalist Top Bar */}
+                    <div className="px-4 py-2 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                      <div>
+                        <h4 className="text-[11px] font-bold tracking-wider text-slate-900 uppercase">
+                          {schoolInfo.name}
+                        </h4>
+                        <span className="text-[9px] text-slate-500 font-mono">ID : {student.matricule}</span>
+                      </div>
+                      <span className="text-[9px] font-bold px-2 py-0.5 bg-slate-200 text-slate-800 rounded">
+                        {schoolInfo.schoolYear}
+                      </span>
+                    </div>
+
+                    {/* Minimalist Body */}
+                    <div className="p-4 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-16 h-20 rounded overflow-hidden border border-slate-300 shrink-0 bg-slate-100">
+                          <img
+                            src={student.photoUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80'}
+                            alt={`${student.firstName} ${student.lastName}`}
+                            className="w-full h-full object-cover grayscale contrast-125"
+                          />
+                        </div>
+                        <div className="space-y-0.5">
+                          <h3 className="text-xs font-black uppercase text-slate-900">
+                            {student.firstName} {student.lastName}
+                          </h3>
+                          <p className="text-[11px] font-bold text-slate-700">
+                            Classe : {student.className}
+                          </p>
+                          <p className="text-[10px] text-slate-500">
+                            Sanguin: <strong className="text-rose-600">{student.bloodType || 'O+'}</strong>
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="text-[10px] bg-slate-50 p-2 rounded border border-slate-200 flex justify-between">
+                        <span>Urgence Tuteur : <strong>{student.parentPhone}</strong></span>
+                        <span className="font-mono text-slate-500">VERIFIED</span>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-200 flex justify-between items-center text-[10px]">
+                        <span className="text-slate-500 italic">Carte certifiée conforme</span>
+                        <span className="font-bold text-slate-800">{directorName}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
