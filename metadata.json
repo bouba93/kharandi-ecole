@@ -1,0 +1,6 @@
+{
+  "name": "Kharandi École — ERP Scolaire",
+  "description": "Système ERP & gestion scolaire intégré pour établissements en Guinée (Primaire, Collège, Lycée). Portails Direction, Enseignants, Parents et Élèves.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
