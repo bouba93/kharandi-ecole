@@ -335,7 +335,11 @@ function generateFallbackResponse(userPrompt: string, context: any): string {
  */
 router.post('/chat', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { message, studentId, history, clientContext } = req.body;
+    const body = req.body || {};
+    const message = body.message;
+    const studentId = body.studentId;
+    const history = body.history;
+    const clientContext = body.clientContext;
 
     if (!message || typeof message !== 'string' || message.trim() === '') {
       res.status(400).json({
