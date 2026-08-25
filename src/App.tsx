@@ -15,6 +15,8 @@ import { EvaluationPlanning } from './components/admin/EvaluationPlanning';
 import { GradeEntry } from './components/teacher/GradeEntry';
 import { AttendanceRollCall } from './components/teacher/AttendanceRollCall';
 import { ParentPortal } from './components/parent/ParentPortal';
+import { KaramoAssistant } from './components/karamo/KaramoAssistant';
+import { KaramoFloatingButton } from './components/karamo/KaramoFloatingButton';
 import { LoadingScreen } from './components/common/LoadingScreen';
 import { UnifiedLogin } from './components/auth/UnifiedLogin';
 
@@ -89,16 +91,13 @@ function AppContent() {
 
           {/* Parent Views */}
           {role === 'parent' && (
-            <>
-              {activeTab === 'evaluations' ? (
-                <EvaluationPlanning />
-              ) : (
-                <ParentPortal activeSubTab={activeTab} />
-              )}
-            </>
+            <ParentPortal activeSubTab={activeTab} />
           )}
         </main>
       </div>
+
+      {/* Global Floating AI Assistant Widget */}
+      <KaramoFloatingButton />
     </div>
   );
 }

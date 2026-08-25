@@ -8,9 +8,14 @@ import {
   ClipboardList,
   UserCheck,
   Settings,
-  Calendar,
   CalendarCheck,
   Palette,
+  Bot,
+  FileText,
+  ListChecks,
+  TrendingUp,
+  ShieldCheck,
+  CreditCard,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -51,9 +56,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
   ];
 
   const parentNav: NavItem[] = [
-    { id: 'student_profile', label: 'Bulletin & Notes', icon: ClipboardList },
-    { id: 'evaluations', label: 'Calendrier Examens', icon: Calendar },
-    { id: 'absences', label: 'Assiduité & Absences', icon: UserCheck },
+    { id: 'karamo_ia', label: 'Assistant Karamô', icon: Bot },
+    { id: 'bulletin', label: 'Bulletin', icon: FileText },
+    { id: 'note', label: 'Note', icon: ListChecks },
+    { id: 'performance', label: 'Performance', icon: TrendingUp },
+    { id: 'attendance', label: 'Assiduité', icon: UserCheck },
+    { id: 'conduite', label: 'Conduite', icon: ShieldCheck },
+    { id: 'scolarite', label: 'Scolarité', icon: CreditCard },
   ];
 
   const currentNav = role === 'admin' ? adminNav : role === 'teacher' ? teacherNav : parentNav;

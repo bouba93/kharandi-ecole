@@ -354,3 +354,23 @@ export const evaluationsApi = {
     }),
 };
 
+// 11. ASSISTANT IA SCOLAIRE KARAMÔ
+export const karamoApi = {
+  chat: (payload: {
+    message: string;
+    studentId?: string;
+    history?: { role: 'user' | 'assistant' | 'model'; content: string }[];
+    clientContext?: any;
+  }) =>
+    fetchJson<{
+      success: boolean;
+      source: string;
+      reply: string;
+      student?: any;
+      error?: string;
+    }>('/karamo/chat', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+};
+

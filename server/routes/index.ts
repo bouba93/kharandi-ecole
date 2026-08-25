@@ -9,6 +9,7 @@ import absencesRoutes from './absences.routes';
 import parentRoutes from './parent.routes';
 import badgesRoutes from './badges.routes';
 import evaluationsRoutes from './evaluations.routes';
+import karamoRoutes from './karamo.routes';
 import { store } from '../data/store';
 
 const mainRouter = Router();
@@ -91,5 +92,8 @@ mainRouter.use('/absences', absencesRoutes);
 // 10. Parent portal (/parent/:matricule, /parents/students/...)
 mainRouter.use('/parent', parentRoutes);
 mainRouter.use('/parents', parentRoutes);
+
+// 11. Assistant IA Scolaire Karamô (/karamo/chat)
+mainRouter.use('/karamo', karamoRoutes);
 
 export default mainRouter;
