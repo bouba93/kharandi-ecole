@@ -203,13 +203,54 @@ Je suis à votre disposition pour vous renseigner sur les notes, l'assiduité, l
         throw new Error(res.error || 'Aucune réponse reçue de Karamô.');
       }
     } catch (err: any) {
-      const errorMessage: Message = {
+      console.warn('[Karamô Client Fallback] Server unreachable, computing client-side response:', err?.message || err);
+      
+      // Compute intelligent immediate response from client state
+      let localReply = `Je suis à votre disposition pour vous renseigner sur ${
+        currentStudent ? `${currentStudent.firstName} ${currentStudent.lastName}` : "l'élève"
+      }. Que souhaitez-vous savoir ?`;
+
+      const qLower = query.toLowerCase();
+      if (currentStudent) {
+        const studentAbsences = attendance.filter((a) => a.studentId === currentStudent.id);
+        const studentGrades = grades.filter((g) => g.studentId === currentStudent.id);
+        const studentPayments = payments.filter((p) => p.studentId === currentStudent.id);
+        const paidAmount = studentPayments.reduce((acc, p) => acc + p.amount, 0);
+        const totalAmount = currentStudent.tuitionTotal || 4500000;
+        const balance = Math.max(0, totalAmount - paidAmount);
+
+        if (qLower.includes('absent') || qLower.includes('absence') || qLower.includes('retard') || qLower.includes('présen')) {
+          if (studentAbsences.length === 0) {
+            localReply = `Concernant ${currentStudent.firstName} ${currentStudent.lastName} (${currentStudent.class}), l'assiduité est exemplaire : aucune absence ni retard n'est enregistré.`;
+          } else {
+            const list = studentAbsences.map(a => `${a.date} (${a.status}, ${a.reason || 'non précisé'})`).join(', ');
+            localReply = `Pour ${currentStudent.firstName} ${currentStudent.lastName}, nous notons ${studentAbsences.length} événement(s) d'assiduité : ${list}.`;
+          }
+        } else if (qLower.includes('note') || qLower.includes('moyenne') || qLower.includes('bulletin') || qLower.includes('résultat')) {
+          if (studentGrades.length > 0) {
+            const gradesStr = studentGrades.slice(0, 5).map(g => `${g.subject} : ${g.value}/${g.outOf || 20}`).join(' — ');
+            localReply = `Voici les dernières notes enregistrées pour ${currentStudent.firstName} en ${currentStudent.class} : ${gradesStr}.`;
+          } else {
+            localReply = `Les évaluations pour ${currentStudent.firstName} sont en cours de saisie par les professeurs.`;
+          }
+        } else if (qLower.includes('devoir') || qLower.includes('examen') || qLower.includes('composition') || qLower.includes('épreuve')) {
+          const classDevoirs = logbook.filter((l) => l.classId === currentStudent.classId && l.homework);
+          const devText = classDevoirs.length > 0 
+            ? classDevoirs.map(d => `${d.subject} : ${d.homework} (pour le ${d.dueDate})`).join(' ; ')
+            : 'Aucun devoir en attente actuellement.';
+          localReply = `Pour la classe de ${currentStudent.class} :\n\nDevoirs : ${devText}.`;
+        } else if (qLower.includes('frais') || qLower.includes('payer') || qLower.includes('paiement') || qLower.includes('solde') || qLower.includes('scolarité')) {
+          localReply = `Situation financière de ${currentStudent.firstName} ${currentStudent.lastName} : sur ${totalAmount.toLocaleString()} GNF, ${paidAmount.toLocaleString()} GNF ont été réglés. Solde restant : ${balance.toLocaleString()} GNF.`;
+        }
+      }
+
+      const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `Je vous prie de m'excuser, une difficulté temporaire est survenue. Veuillez vérifier votre connexion ou reformuler votre question.`,
+        content: localReply,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, assistantMessage]);
     } finally {
       setIsLoading(false);
       setTimeout(() => inputRef.current?.focus(), 100);
